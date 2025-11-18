@@ -320,7 +320,13 @@ namespace QuanLyDoAn.View
         {
             if (string.IsNullOrEmpty(txtMaDeTai.Text))
             {
-                MessageBox.Show("Vui lòng chọn đồ án cần sửa");
+                MessageBox.Show("Vui lòng chọn đồ án cần sửa", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!AuthorizationHelper.IsAdmin())
+            {
+                MessageBox.Show("Chỉ Admin mới có thể sửa thông tin đề tài!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -328,6 +334,7 @@ namespace QuanLyDoAn.View
             var editForm = new TaoDoAnForm(txtMaDeTai.Text);
             if (editForm.ShowDialog() == DialogResult.OK)
             {
+                MessageBox.Show("✅ Cập nhật đề tài thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 LoadData();
                 ClearForm();
             }

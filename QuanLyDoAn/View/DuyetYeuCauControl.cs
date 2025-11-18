@@ -65,28 +65,31 @@ namespace QuanLyDoAn.View
             }
 
             var maYeuCau = Convert.ToInt32(dgvYeuCau.CurrentRow.Cells["MaYeuCau"].Value);
-            var maDeTai = dgvYeuCau.CurrentRow.Cells["TenDeTai"]?.Value?.ToString();
+            var tenDeTai = dgvYeuCau.CurrentRow.Cells["TenDeTai"].Value?.ToString() ?? "";
+            var tenSv = dgvYeuCau.CurrentRow.Cells["SinhVien"].Value?.ToString() ?? "";
             
             var result = MessageBox.Show(
-                "Bạn có chắc muốn chấp nhận yêu cầu này?\n\n" +
-                "- Sinh viên sẽ được gán vào đề tài\n" +
-                "- Các yêu cầu khác cho đề tài này sẽ bị từ chối", 
+                $"Bạn có chắc muốn chấp nhận yêu cầu này?\n\n" +
+                $"📌 Đề tài: {tenDeTai}\n" +
+                $"👤 Sinh viên: {tenSv}\n\n" +
+                $"Các yêu cầu khác cho đề tài này sẽ bị từ chối tự động!", 
                 "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result == DialogResult.Yes)
             {
                 if (controller.DuyetYeuCau(maYeuCau, true))
                 {
-                    MessageBox.Show("Đã chấp nhận yêu cầu!\n\n" +
-                        "- Sinh viên đã được gán vào đồ án\n" +
-                        "- Các yêu cầu khác cho đề tài này đã bị từ chối\n" +
-                        "- Đề tài sẽ biến mất khỏi danh sách", 
+                    MessageBox.Show(
+                        $"✅ Đã chấp nhận yêu cầu!\n\n" +
+                        $"✓ Sinh viên: {tenSv} được gán vào đề tài\n" +
+                        $"✓ Các yêu cầu khác bị từ chối\n" +
+                        $"✓ Đề tài sẽ biến mất khỏi danh sách", 
                         "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadData(); // Làm mới danh sách - đề tài sẽ biến mất
+                    LoadData(); // Làm mới - yêu cầu sẽ biến mất
                 }
                 else
                 {
-                    MessageBox.Show("Duyệt yêu cầu thất bại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("❌ Duyệt yêu cầu thất bại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
@@ -100,18 +103,30 @@ namespace QuanLyDoAn.View
             }
 
             var maYeuCau = Convert.ToInt32(dgvYeuCau.CurrentRow.Cells["MaYeuCau"].Value);
-            var result = MessageBox.Show("Bạn có chắc muốn từ chối yêu cầu này?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            var tenDeTai = dgvYeuCau.CurrentRow.Cells["TenDeTai"].Value?.ToString() ?? "";
+            var tenSv = dgvYeuCau.CurrentRow.Cells["SinhVien"].Value?.ToString() ?? "";
+            
+            var result = MessageBox.Show(
+                $"Bạn có chắc muốn từ chối yêu cầu này?\n\n" +
+                $"📌 Đề tài: {tenDeTai}\n" +
+                $"👤 Sinh viên: {tenSv}\n\n" +
+                $"⚠️ Đề tài sẽ vẫn mở cho sinh viên khác đăng ký!", 
+                "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result == DialogResult.Yes)
             {
                 if (controller.DuyetYeuCau(maYeuCau, false))
                 {
-                    MessageBox.Show("Đã từ chối yêu cầu!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadData();
+                    MessageBox.Show(
+                        $"✅ Đã từ chối yêu cầu!\n\n" +
+                        $"✓ Sinh viên: {tenSv} bị từ chối\n" +
+                        $"✓ Đề tài vẫn mở cho sinh viên khác", 
+                        "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadData(); // Làm mới
                 }
                 else
                 {
-                    MessageBox.Show("Từ chối yêu cầu thất bại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("❌ Từ chối yêu cầu thất bại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }

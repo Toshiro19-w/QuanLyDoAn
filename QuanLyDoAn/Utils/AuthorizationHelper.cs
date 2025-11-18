@@ -52,10 +52,6 @@ namespace QuanLyDoAn.Utils
             }
         }
 
-        /// <summary>
-        /// Configure non-menu controls (buttons, panels) by role. Call from forms to hide/show controls like
-        /// btnTaoDeTaiMoi (Admin + GiangVien) and btnDuyetYeuCau (GiangVien only).
-        /// </summary>
         public static void ConfigureControlsByRole(Control.ControlCollection controls)
         {
             foreach (Control control in controls)
@@ -90,7 +86,9 @@ namespace QuanLyDoAn.Utils
             switch (action)
             {
                 case "QuanLyTaiKhoan":
+                    return IsAdmin();
                 case "QuanLyDoAn":
+                    // Admin có thể quản lý tất cả đồ án
                     return IsAdmin();
                 case "DoAnGiangVien":
                 case "ChamDiem":

@@ -106,6 +106,8 @@ namespace QuanLyDoAn
                 yPosition += 60;
                 AddMenuButton("Đăng ký đồ án", yPosition, BtnDangKyDoAn_Click);
                 yPosition += 60;
+                AddMenuButton("Lịch sử yêu cầu", yPosition, BtnLichSuYeuCau_Click);
+                yPosition += 60;
                 AddMenuButton("Cập nhật tiến độ", yPosition, BtnCapNhatTienDo_Click);
                 yPosition += 60;
                 AddMenuButton("Nộp tài liệu", yPosition, BtnNopTaiLieu_Click);
@@ -275,6 +277,11 @@ namespace QuanLyDoAn
         private void BtnDangKyDoAn_Click(object sender, EventArgs e)
         {
             LoadUserControl(new DangKyDoAnControl());
+        }
+        
+        private void BtnLichSuYeuCau_Click(object sender, EventArgs e)
+        {
+            LoadUserControl(new LichSuYeuCauControl());
         }
         
         private void LoadUserControl(UserControl userControl)
