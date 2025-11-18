@@ -90,6 +90,10 @@ namespace QuanLyDoAn.Utils
                 case "QuanLyDoAn":
                     // Admin có thể quản lý tất cả đồ án
                     return IsAdmin();
+                case "QuanLyGiangVien":
+                case "QuanLySinhVien":
+                case "QuanLyDanhMuc":
+                    return IsAdmin();
                 case "DoAnGiangVien":
                 case "ChamDiem":
                 case "NhanXetTienDo":

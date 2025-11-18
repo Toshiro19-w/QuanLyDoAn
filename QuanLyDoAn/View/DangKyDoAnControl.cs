@@ -22,9 +22,19 @@ namespace QuanLyDoAn.View
         {
             try
             {
-                // Load danh sách đề tài chưa có sinh viên
-                var doAns = controller.LayDoAnChuaCoSinhVien();
                 var maSv = UserSession.CurrentUser?.MaSv ?? "";
+
+                bool daCoDoAn = controller.SinhVienDaCoDoAn(maSv);
+                btnDangKy.Enabled = !daCoDoAn;
+
+                if (daCoDoAn)
+                {
+                    dgvDoAn.DataSource = null;
+                    return;
+                }
+
+                // Load danh sách đề tài chưa có sinh viên (ẩn đề tài SV đã yêu cầu)
+                var doAns = controller.LayDoAnChuaCoSinhVien(maSv);
                 var yeuCauCuaSv = controller.LayYeuCauCuaSinhVien(maSv);
                 
                 var displayData = doAns.Select(d => 

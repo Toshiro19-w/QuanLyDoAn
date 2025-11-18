@@ -53,7 +53,8 @@ namespace QuanLyDoAn.Controller
             }
             catch (Exception ex)
             {
-                errorMessage = "Lỗi khi tạo đồ án: " + ex.Message;
+                var inner = ex.InnerException?.Message;
+                errorMessage = "Lỗi khi tạo đồ án: " + ex.Message + (inner != null ? $" Chi tiết: {inner}" : string.Empty);
                 return false;
             }
         }
