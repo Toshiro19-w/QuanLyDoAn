@@ -94,12 +94,8 @@ namespace QuanLyDoAn.View
                             var doAnEntity = context.DoAns.Find(vm.MaDeTai);
                             if (doAnEntity != null && dgvDoAn.Columns["MaLoaiDoAn"] != null)
                             {
-                                // Display TenLoaiDoAn instead of MaLoaiDoAn
-                                var maLoai = doAnEntity.MaLoaiDoAn;
-                                var tenLoai = loaiDoAnMap.ContainsKey(maLoai ?? "") 
-                                    ? loaiDoAnMap[maLoai] 
-                                    : maLoai ?? "";
-                                row.Cells["MaLoaiDoAn"].Value = tenLoai;
+                                var maLoai = doAnEntity.MaLoaiDoAn ?? "";
+                                row.Cells["MaLoaiDoAn"].Value = maLoai;
                             }
                         }
                     }
@@ -187,6 +183,16 @@ namespace QuanLyDoAn.View
                 foreach (dynamic item in loaiDoAnList)
                 {
                     loaiDoAnMap[item.MaLoaiDoAn] = item.TenLoaiDoAn;
+                }
+
+                // configure grid combo column
+                if (dgvDoAn.Columns["MaLoaiDoAn"] is DataGridViewComboBoxColumn comboColumn)
+                {
+                    comboColumn.DataSource = loaiDoAnList;
+                    comboColumn.DisplayMember = "TenLoaiDoAn";
+                    comboColumn.ValueMember = "MaLoaiDoAn";
+                    comboColumn.DisplayStyle = DataGridViewComboBoxDisplayStyle.DropDownButton;
+                    comboColumn.FlatStyle = FlatStyle.Flat;
                 }
 
                 // populate the top-level cmbMaLoai (outside grid) so user can edit via that combobox

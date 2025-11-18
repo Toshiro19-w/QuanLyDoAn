@@ -34,6 +34,7 @@ namespace QuanLyDoAn.View
                 d.MoTa,
                 LoaiDoAn = d.MaLoaiDoAnNavigation?.TenLoaiDoAn ?? "Chưa xác định",
                 SinhVien = d.MaSvNavigation?.HoTen ?? "Chưa phân công",
+                SinhVienId = d.MaSv,
                 TrangThai = d.MaTrangThaiNavigation?.TenTrangThai ?? "Chưa xác định",
                 d.NgayBatDau,
                 d.NgayKetThuc,
@@ -41,6 +42,7 @@ namespace QuanLyDoAn.View
             }).ToList();
             
             dgvDoAn.DataSource = displayData;
+            UpdateDeleteButtonState();
 
             // Đặt tên cột tiếng Việt
             if (dgvDoAn.Columns["MaDeTai"] != null)
@@ -53,6 +55,8 @@ namespace QuanLyDoAn.View
                 dgvDoAn.Columns["LoaiDoAn"].HeaderText = "Loại đồ án";
             if (dgvDoAn.Columns["SinhVien"] != null)
                 dgvDoAn.Columns["SinhVien"].HeaderText = "Sinh viên";
+            if (dgvDoAn.Columns["SinhVienId"] != null)
+                dgvDoAn.Columns["SinhVienId"].Visible = false;
             if (dgvDoAn.Columns["TrangThai"] != null)
                 dgvDoAn.Columns["TrangThai"].HeaderText = "Trạng thái";
             if (dgvDoAn.Columns["NgayBatDau"] != null)
@@ -109,6 +113,24 @@ namespace QuanLyDoAn.View
                         }
                     }
                 }
+
+                UpdateDeleteButtonState();
+            }
+            else
+            {
+                btnXoaDeTai.Enabled = false;
+            }
+        }
+
+        private void UpdateDeleteButtonState()
+        {
+            if (dgvDoAn.CurrentRow?.Cells["SinhVienId"]?.Value is string sv && !string.IsNullOrEmpty(sv))
+            {
+                btnXoaDeTai.Enabled = false;
+            }
+            else
+            {
+                btnXoaDeTai.Enabled = dgvDoAn.Rows.Count > 0;
             }
         }
         
@@ -139,22 +161,92 @@ namespace QuanLyDoAn.View
             if (dgvDoAn.CurrentRow?.DataBoundItem != null)
             {
                 var maDeTai = dgvDoAn.CurrentRow.Cells["MaDeTai"].Value?.ToString();
+                var maGv = UserSession.CurrentUser?.MaGv;
                 if (string.IsNullOrEmpty(maDeTai)) return;
+                if (string.IsNullOrEmpty(maGv))
+                {
+                    MessageBox.Show("Không xác định được thông tin giảng viên. Vui lòng đăng nhập lại.", 
+                        "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
                 
                 if (decimal.TryParse(txtDiem.Text, out decimal diem) && diem >= 0 && diem <= 10)
                 {
-                    if (giangVienController.ChamDiem(maDeTai, diem))
+                    if (giangVienController.ChamDiem(maDeTai, diem, maGv))
                     {
                         MessageBox.Show("Chấm điểm thành công!");
                         LoadData();
                         txtDiem.Clear();
                         txtNhanXetCuoi.Clear();
                     }
+                    else
+                    {
+                        MessageBox.Show("Không thể chấm điểm cho đề tài này. Vui lòng kiểm tra quyền sở hữu hoặc trạng thái đề tài.", 
+                            "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
                 }
                 else
                 {
                     MessageBox.Show("Điểm phải từ 0 đến 10!");
                 }
+            }
+        }
+
+        private void BtnSuaDeTai_Click(object sender, EventArgs e)
+        {
+            if (!AuthorizationHelper.IsGiangVien())
+            {
+                AuthorizationHelper.ShowAccessDeniedMessage();
+                return;
+            }
+
+            var maDeTai = dgvDoAn.CurrentRow?.Cells["MaDeTai"]?.Value?.ToString();
+            if (string.IsNullOrEmpty(maDeTai))
+            {
+                MessageBox.Show("Vui lòng chọn đề tài cần sửa.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using var form = new TaoDoAnForm(maDeTai);
+            if (form.ShowDialog() == DialogResult.OK)
+            {
+                LoadData();
+            }
+        }
+
+        private void BtnXoaDeTai_Click(object sender, EventArgs e)
+        {
+            if (!AuthorizationHelper.IsGiangVien())
+            {
+                AuthorizationHelper.ShowAccessDeniedMessage();
+                return;
+            }
+
+            var maDeTai = dgvDoAn.CurrentRow?.Cells["MaDeTai"]?.Value?.ToString();
+            if (string.IsNullOrEmpty(maDeTai))
+            {
+                MessageBox.Show("Vui lòng chọn đề tài cần xóa.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var maGv = UserSession.CurrentUser?.MaGv;
+            if (string.IsNullOrEmpty(maGv))
+            {
+                MessageBox.Show("Không xác định được giảng viên hiện tại. Vui lòng đăng nhập lại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            var confirm = MessageBox.Show("Bạn chắc chắn muốn xóa đề tài này? Thao tác không thể hoàn tác.", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (confirm != DialogResult.Yes) return;
+
+            if (giangVienController.XoaDeTaiCuaGiangVien(maDeTai, maGv, out string error))
+            {
+                MessageBox.Show("Đã xóa đề tài thành công.", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                LoadData();
+            }
+            else
+            {
+                MessageBox.Show(error, "Không thể xóa đề tài", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
     }

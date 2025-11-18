@@ -29,8 +29,8 @@ namespace QuanLyDoAn.View
                 
                 if (yeuCaus.Count == 0)
                 {
-                    MessageBox.Show("B?n ch?a g?i y�u c?u n�o!", "Th�ng b�o", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    lblThongTin.Text = "Ch?a c� y�u c?u n�o";
+                    MessageBox.Show("Bạn chưa gửi yêu cầu nào!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    lblThongTin.Text = "Chưa có yêu cầu nào";
                     dgvLichSu.DataSource = null;
                     return;
                 }
@@ -58,15 +58,15 @@ namespace QuanLyDoAn.View
                     dgvLichSu.Columns["TrangThaiCode"].Visible = false;
                     
                 if (dgvLichSu.Columns["TenDeTai"] != null)
-                    dgvLichSu.Columns["TenDeTai"].HeaderText = "T�n ?? t�i";
+                    dgvLichSu.Columns["TenDeTai"].HeaderText = "Tên đề tài";
                 if (dgvLichSu.Columns["GiangVien"] != null)
-                    dgvLichSu.Columns["GiangVien"].HeaderText = "Gi?ng vi�n";
+                    dgvLichSu.Columns["GiangVien"].HeaderText = "Giảng viên";
                 if (dgvLichSu.Columns["TrangThaiDisplay"] != null)
-                    dgvLichSu.Columns["TrangThaiDisplay"].HeaderText = "Tr?ng th�i";
+                    dgvLichSu.Columns["TrangThaiDisplay"].HeaderText = "Trạng thái";
                 if (dgvLichSu.Columns["NgayGui"] != null)
-                    dgvLichSu.Columns["NgayGui"].HeaderText = "Ng�y g?i";
+                    dgvLichSu.Columns["NgayGui"].HeaderText = "Ngày gửi";
                 if (dgvLichSu.Columns["GhiChu"] != null)
-                    dgvLichSu.Columns["GhiChu"].HeaderText = "Ghi ch�";
+                    dgvLichSu.Columns["GhiChu"].HeaderText = "Ghi chú";
 
                 // Highlight rows by status - use code instead of display text
                 foreach (DataGridViewRow row in dgvLichSu.Rows)
@@ -92,11 +92,11 @@ namespace QuanLyDoAn.View
                 var approvedCount = yeuCaus.Count(y => y.TrangThai == "Approved");
                 var rejectedCount = yeuCaus.Count(y => y.TrangThai == "Rejected");
 
-                lblThongTin.Text = $"T?ng c?ng: {yeuCaus.Count} y�u c?u ({pendingCount} ch? duy?t, {approvedCount} ???c duy?t, {rejectedCount} b? t? ch?i)";
+                lblThongTin.Text = $"Tổng cộng: {yeuCaus.Count} yêu cầu ({pendingCount} chờ duyệt, {approvedCount} được duyệt, {rejectedCount} bị từ chối)";
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"L?i khi t?i d? li?u: {ex.Message}", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi khi tải dữ liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -105,9 +105,9 @@ namespace QuanLyDoAn.View
             // Return display text with emoji based on status code
             return trangThai switch
             {
-                "Pending" => "? Ch? duy?t",
-                "Approved" => "? ?� duy?t",
-                "Rejected" => "? B? t? ch?i",
+                "Pending" => "⏳ Chờ duyệt",
+                "Approved" => "✅ Đã duyệt",
+                "Rejected" => "❌ Bị từ chối",
                 _ => trangThai ?? "N/A"
             };
         }
@@ -115,14 +115,14 @@ namespace QuanLyDoAn.View
         private void BtnLamMoi_Click(object sender, EventArgs e)
         {
             LoadData();
-            MessageBox.Show("? ?� l�m m?i danh s�ch!", "Th�ng b�o", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("✅ Đã làm mới danh sách!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void BtnXoa_Click(object sender, EventArgs e)
         {
             if (dgvLichSu.CurrentRow == null)
             {
-                MessageBox.Show("Vui l�ng ch?n y�u c?u!", "Th�ng b�o", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Vui l�ng ch?n y�u c?u!", "Th�ng b�o", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -131,16 +131,16 @@ namespace QuanLyDoAn.View
             
             if (trangThaiCode == "Approved")
             {
-                MessageBox.Show("Kh�ng th? x�a y�u c?u ?� ???c duy?t!", "Th�ng b�o", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Không thể xóa yêu cầu đã được duyệt!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
             var tenDeTai = dgvLichSu.CurrentRow.Cells["TenDeTai"].Value?.ToString() ?? "";
-            var result = MessageBox.Show($"B?n ch?c ch?n mu?n h?y y�u c?u:\n\n{tenDeTai}?", "X�c nh?n", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            var result = MessageBox.Show($"Bạn chắc chắn muốn hủy yêu cầu:\n\n{tenDeTai}?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             
             if (result == DialogResult.Yes)
             {
-                MessageBox.Show("? ?� h?y y�u c?u! Li�n h? gi?ng vi�n n?u c?n.", "Th�nh c�ng", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("✅ Đã hủy yêu cầu! Liên hệ giảng viên nếu cần.", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 LoadData();
             }
         }

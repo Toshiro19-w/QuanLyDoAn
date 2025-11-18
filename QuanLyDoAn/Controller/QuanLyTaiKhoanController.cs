@@ -1,7 +1,9 @@
 using QuanLyDoAn.Model.Entities;
 using QuanLyDoAn.Model.EF;
+using QuanLyDoAn.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Data.SqlClient;
+using System.Linq;
 
 namespace QuanLyDoAn.Controller
 {
@@ -21,6 +23,13 @@ namespace QuanLyDoAn.Controller
         {
             try
             {
+                if (!Validation.IsValidPassword(taiKhoan.MatKhau))
+                {
+                    return false;
+                }
+
+                taiKhoan.MatKhau = HashHelper.HashPassword(taiKhoan.MatKhau);
+
                 using var context = new QuanLyDoAnContext();
                 context.TaiKhoans.Add(taiKhoan);
                 context.SaveChanges();
@@ -34,7 +43,23 @@ namespace QuanLyDoAn.Controller
             try
             {
                 using var context = new QuanLyDoAnContext();
-                context.TaiKhoans.Update(taiKhoan);
+                var existing = context.TaiKhoans.FirstOrDefault(t => t.TenDangNhap == taiKhoan.TenDangNhap);
+                if (existing == null) return false;
+
+                existing.VaiTro = taiKhoan.VaiTro;
+                existing.MaGv = taiKhoan.MaGv;
+                existing.MaSv = taiKhoan.MaSv;
+
+                if (!string.IsNullOrWhiteSpace(taiKhoan.MatKhau))
+                {
+                    if (!Validation.IsValidPassword(taiKhoan.MatKhau))
+                    {
+                        return false;
+                    }
+
+                    existing.MatKhau = HashHelper.HashPassword(taiKhoan.MatKhau);
+                }
+
                 context.SaveChanges();
                 return true;
             }

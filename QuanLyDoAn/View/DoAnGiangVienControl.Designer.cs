@@ -29,6 +29,8 @@ namespace QuanLyDoAn.View
         private void InitializeComponent()
         {
             lblDoAnTitle = new Label();
+            btnSuaDeTai = new Button();
+            btnXoaDeTai = new Button();
             dgvDoAn = new DataGridView();
             lblTienDoTitle = new Label();
             dgvTienDo = new DataGridView();
@@ -53,6 +55,32 @@ namespace QuanLyDoAn.View
             lblDoAnTitle.Size = new Size(335, 28);
             lblDoAnTitle.TabIndex = 0;
             lblDoAnTitle.Text = "Danh sách đồ án được phân công:";
+            // 
+            // btnSuaDeTai
+            // 
+            btnSuaDeTai.BackColor = Color.FromArgb(241, 196, 15);
+            btnSuaDeTai.FlatStyle = FlatStyle.Flat;
+            btnSuaDeTai.ForeColor = Color.White;
+            btnSuaDeTai.Location = new Point(1460, 15);
+            btnSuaDeTai.Name = "btnSuaDeTai";
+            btnSuaDeTai.Size = new Size(60, 35);
+            btnSuaDeTai.TabIndex = 13;
+            btnSuaDeTai.Text = "Sửa";
+            btnSuaDeTai.UseVisualStyleBackColor = false;
+            btnSuaDeTai.Click += BtnSuaDeTai_Click;
+            // 
+            // btnXoaDeTai
+            // 
+            btnXoaDeTai.BackColor = Color.FromArgb(231, 76, 60);
+            btnXoaDeTai.FlatStyle = FlatStyle.Flat;
+            btnXoaDeTai.ForeColor = Color.White;
+            btnXoaDeTai.Location = new Point(1526, 15);
+            btnXoaDeTai.Name = "btnXoaDeTai";
+            btnXoaDeTai.Size = new Size(69, 35);
+            btnXoaDeTai.TabIndex = 14;
+            btnXoaDeTai.Text = "Xóa";
+            btnXoaDeTai.UseVisualStyleBackColor = false;
+            btnXoaDeTai.Click += BtnXoaDeTai_Click;
             // 
             // dgvDoAn
             // 
@@ -175,6 +203,8 @@ namespace QuanLyDoAn.View
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(236, 240, 241);
+            Controls.Add(btnXoaDeTai);
+            Controls.Add(btnSuaDeTai);
             Controls.Add(btnChamDiem);
             Controls.Add(txtNhanXetCuoi);
             Controls.Add(lblNhanXetCuoi);
@@ -209,5 +239,7 @@ namespace QuanLyDoAn.View
         private Label lblNhanXetCuoi;
         private TextBox txtNhanXetCuoi;
         private Button btnChamDiem;
+        private Button btnSuaDeTai;
+        private Button btnXoaDeTai;
     }
 }
