@@ -127,6 +127,58 @@ CREATE TABLE TaiKhoan (
     FOREIGN KEY (MaSV) REFERENCES SinhVien(MaSV),
     FOREIGN KEY (MaGV) REFERENCES GiangVien(MaGV)
 );
+
+CREATE TABLE YeuCauDangKy (
+    MaYeuCau INT PRIMARY KEY IDENTITY(1,1),
+    MaDeTai VARCHAR(10) NOT NULL,
+    MaSV VARCHAR(10) NOT NULL,
+    NgayGui DATE NOT NULL,
+    TrangThai NVARCHAR(20) NOT NULL, -- 'Pending', 'Approved', 'Rejected'
+    GhiChu NVARCHAR(500),
+    FOREIGN KEY (MaDeTai) REFERENCES DoAn(MaDeTai) ON DELETE CASCADE,
+    FOREIGN KEY (MaSV) REFERENCES SinhVien(MaSV) ON DELETE CASCADE
+);
+
+-- Tạo bảng LoaiDanhGia
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='LoaiDanhGia' AND xtype='U')
+CREATE TABLE LoaiDanhGia (
+    MaLoaiDanhGia VARCHAR(10) PRIMARY KEY,
+    TenLoaiDanhGia NVARCHAR(50) NOT NULL,
+    TrongSoDiem DECIMAL(5,2) NOT NULL
+);
+
+-- Tạo bảng TieuChiDanhGia
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='TieuChiDanhGia' AND xtype='U')
+CREATE TABLE TieuChiDanhGia (
+    MaTieuChi INT IDENTITY(1,1) PRIMARY KEY,
+    TenTieuChi NVARCHAR(100) NOT NULL,
+    MoTa NVARCHAR(500),
+    TrongSo DECIMAL(5,2) NOT NULL,
+    DiemToiDa DECIMAL(4,2) DEFAULT 10,
+    MaLoaiDoAn VARCHAR(10),
+    FOREIGN KEY (MaLoaiDoAn) REFERENCES LoaiDoAn(MaLoaiDoAn)
+);
+
+-- Tạo bảng ChiTietDanhGia
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='ChiTietDanhGia' AND xtype='U')
+CREATE TABLE ChiTietDanhGia (
+    MaChiTiet INT IDENTITY(1,1) PRIMARY KEY,
+    MaDanhGia INT NOT NULL,
+    MaTieuChi INT NOT NULL,
+    Diem DECIMAL(4,2) NOT NULL,
+    NhanXet NVARCHAR(500),
+    FOREIGN KEY (MaDanhGia) REFERENCES DanhGia(MaDanhGia) ON DELETE CASCADE,
+    FOREIGN KEY (MaTieuChi) REFERENCES TieuChiDanhGia(MaTieuChi) ON DELETE CASCADE
+);
+
+-- Thêm cột MaLoaiDanhGia vào bảng DanhGia nếu chưa có
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'DanhGia' AND COLUMN_NAME = 'MaLoaiDanhGia')
+ALTER TABLE DanhGia ADD MaLoaiDanhGia VARCHAR(10);
+
+-- Thêm foreign key constraint
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_NAME = 'FK_DanhGia_LoaiDanhGia')
+ALTER TABLE DanhGia ADD CONSTRAINT FK_DanhGia_LoaiDanhGia 
+FOREIGN KEY (MaLoaiDanhGia) REFERENCES LoaiDanhGia(MaLoaiDanhGia);
 GO
 
 /* ======================================================
@@ -168,6 +220,29 @@ INSERT INTO TaiKhoan VALUES
 ('sv002', N'sv002', N'SinhVien', 'SV002', NULL),
 ('gv001', N'gv001', N'GiangVien', NULL, 'GV001'),
 ('gv002', N'gv002', N'GiangVien', NULL, 'GV002');
+
+-- Dữ liệu mẫu cho LoaiDanhGia
+INSERT INTO LoaiDanhGia (MaLoaiDanhGia, TenLoaiDanhGia, TrongSoDiem) VALUES
+('HD', N'Hướng dẫn', 40.00),
+('PB', N'Phản biện', 30.00),
+('HĐ', N'Hội đồng', 30.00);
+
+-- Dữ liệu mẫu cho TieuChiDanhGia (cho đồ án tốt nghiệp)
+INSERT INTO TieuChiDanhGia (TenTieuChi, MoTa, TrongSo, DiemToiDa, MaLoaiDoAn) VALUES
+(N'Tính đúng đắn của nội dung', N'Đánh giá tính chính xác, khoa học của nội dung đồ án', 25.00, 10, 'DATN'),
+(N'Tính sáng tạo và ứng dụng', N'Đánh giá khả năng sáng tạo và tính ứng dụng thực tế', 20.00, 10, 'DATN'),
+(N'Khả năng trình bày', N'Đánh giá kỹ năng thuyết trình và trả lời câu hỏi', 15.00, 10, 'DATN'),
+(N'Chất lượng báo cáo', N'Đánh giá chất lượng văn bản, hình ảnh, biểu đồ', 20.00, 10, 'DATN'),
+(N'Tiến độ thực hiện', N'Đánh giá việc tuân thủ tiến độ và kế hoạch', 20.00, 10, 'DATN');
+
+-- Dữ liệu mẫu cho TieuChiDanhGia (cho đồ án chuyên ngành)
+INSERT INTO TieuChiDanhGia (TenTieuChi, MoTa, TrongSo, DiemToiDa, MaLoaiDoAn) VALUES
+(N'Nắm vững kiến thức chuyên môn', N'Đánh giá mức độ hiểu biết kiến thức chuyên ngành', 30.00, 10, 'DACN'),
+(N'Kỹ năng thực hành', N'Đánh giá khả năng áp dụng kiến thức vào thực tế', 25.00, 10, 'DACN'),
+(N'Tính logic và mạch lạc', N'Đánh giá tính logic trong trình bày và giải quyết vấn đề', 20.00, 10, 'DACN'),
+(N'Khả năng phân tích', N'Đánh giá khả năng phân tích và đưa ra giải pháp', 25.00, 10, 'DACN');
+
+PRINT N'Đã khởi tạo thành công dữ liệu cho hệ thống chấm điểm!';
 GO
 
 /* ======================================================

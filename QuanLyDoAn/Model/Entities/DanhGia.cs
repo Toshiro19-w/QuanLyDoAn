@@ -11,6 +11,8 @@ public partial class DanhGia
 
     public string? MaGv { get; set; }
 
+    public string? MaLoaiDanhGia { get; set; }
+
     public decimal? DiemThanhPhan { get; set; }
 
     public string? NhanXet { get; set; }
@@ -20,4 +22,8 @@ public partial class DanhGia
     public virtual DoAn? MaDeTaiNavigation { get; set; }
 
     public virtual GiangVien? MaGvNavigation { get; set; }
+
+    public virtual LoaiDanhGia? MaLoaiDanhGiaNavigation { get; set; }
+
+    public virtual ICollection<ChiTietDanhGia> ChiTietDanhGias { get; set; } = new List<ChiTietDanhGia>();
 }

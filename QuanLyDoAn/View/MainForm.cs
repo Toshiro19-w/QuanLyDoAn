@@ -78,6 +78,8 @@ namespace QuanLyDoAn
             {
                 AddMenuButton("Quản lý Đồ án", yPosition, BtnQuanLyDoAn_Click);
                 yPosition += 60;
+                AddMenuButton("Phân công", yPosition, BtnPhanCong_Click);
+                yPosition += 60;
                 AddMenuButton("Quản lý Tài khoản", yPosition, BtnQuanLyTaiKhoan_Click);
                 yPosition += 60;
                 AddMenuButton("Quản lý Giảng viên", yPosition, BtnQuanLyGiangVien_Click);
@@ -117,8 +119,6 @@ namespace QuanLyDoAn
                 AddMenuButton("Cập nhật tiến độ", yPosition, BtnCapNhatTienDo_Click);
                 yPosition += 60;
                 AddMenuButton("Nộp tài liệu", yPosition, BtnNopTaiLieu_Click);
-                yPosition += 60;
-                AddMenuButton("Thông báo", yPosition, BtnThongBao_Click);
                 yPosition += 60;
                 AddMenuButton("Thông tin cá nhân", yPosition, BtnThongTinCaNhan_Click);
                 yPosition += 60;
@@ -232,6 +232,16 @@ namespace QuanLyDoAn
             }
             LoadUserControl(new QuanLyDanhMucControl());
         }
+
+        private void BtnPhanCong_Click(object sender, EventArgs e)
+        {
+            if (!AuthorizationHelper.IsAdmin())
+            {
+                AuthorizationHelper.ShowAccessDeniedMessage();
+                return;
+            }
+            LoadUserControl(new PhanCongControl());
+        }
         
         private void BtnDoAnGiangVien_Click(object sender, EventArgs e)
         {
@@ -268,10 +278,6 @@ namespace QuanLyDoAn
             if (AuthorizationHelper.IsGiangVien())
             {
                 LoadUserControl(new ThongBaoGiangVienControl());
-            }
-            else if (AuthorizationHelper.IsSinhVien())
-            {
-                LoadUserControl(new ThongBaoSinhVienControl());
             }
         }
         

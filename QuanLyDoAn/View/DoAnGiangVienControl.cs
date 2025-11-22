@@ -26,24 +26,43 @@ namespace QuanLyDoAn.View
 
             var doAns = giangVienController.LayDoAnDuocPhanCong(maGv);
             
-            // Tạo dữ liệu hiển thị với thông tin bổ sung
-            var displayData = doAns.Select(d => new
+            // Lấy thông tin chi tiết về trạng thái chấm điểm
+            var displayData = doAns.Select(d =>
             {
-                d.MaDeTai,
-                d.TenDeTai,
-                d.MoTa,
-                LoaiDoAn = d.MaLoaiDoAnNavigation?.TenLoaiDoAn ?? "Chưa xác định",
-                SinhVien = d.MaSvNavigation?.HoTen ?? "Chưa phân công",
-                SinhVienId = d.MaSv,
-                TrangThai = d.MaTrangThaiNavigation?.TenTrangThai ?? "Chưa xác định",
-                d.NgayBatDau,
-                d.NgayKetThuc,
-                d.Diem
+                var chiTiet = Helpers.GiangVienUXHelper.LayChiTietDoAn(d.MaDeTai, maGv);
+                string trangThaiChamDiem = "Chưa chấm";
+                
+                if (chiTiet != null)
+                {
+                    var daCham = chiTiet.DanhSachLoaiDanhGia.Where(l => l.DaCham).Select(l => l.TenLoai).ToList();
+                    var chuaCham = chiTiet.DanhSachLoaiDanhGia.Where(l => l.CoTheChams && !l.DaCham).Select(l => l.TenLoai).ToList();
+                    
+                    if (daCham.Any() && !chuaCham.Any())
+                        trangThaiChamDiem = "Hoàn thành";
+                    else if (daCham.Any())
+                        trangThaiChamDiem = $"Đã chấm: {string.Join(", ", daCham)}";
+                    else if (chuaCham.Any())
+                        trangThaiChamDiem = $"Cần chấm: {string.Join(", ", chuaCham)}";
+                }
+                
+                return new
+                {
+                    d.MaDeTai,
+                    d.TenDeTai,
+                    d.MoTa,
+                    LoaiDoAn = d.MaLoaiDoAnNavigation?.TenLoaiDoAn ?? "Chưa xác định",
+                    SinhVien = d.MaSvNavigation?.HoTen ?? "Chưa phân công",
+                    SinhVienId = d.MaSv,
+                    TrangThai = d.MaTrangThaiNavigation?.TenTrangThai ?? "Chưa xác định",
+                    TrangThaiChamDiem = trangThaiChamDiem,
+                    d.NgayBatDau,
+                    d.NgayKetThuc,
+                    d.Diem
+                };
             }).ToList();
             
             dgvDoAn.DataSource = displayData;
-            UpdateDeleteButtonState();
-
+            
             // Đặt tên cột tiếng Việt
             if (dgvDoAn.Columns["MaDeTai"] != null)
                 dgvDoAn.Columns["MaDeTai"].Visible = false;
@@ -59,12 +78,16 @@ namespace QuanLyDoAn.View
                 dgvDoAn.Columns["SinhVienId"].Visible = false;
             if (dgvDoAn.Columns["TrangThai"] != null)
                 dgvDoAn.Columns["TrangThai"].HeaderText = "Trạng thái";
+            if (dgvDoAn.Columns["TrangThaiChamDiem"] != null)
+                dgvDoAn.Columns["TrangThaiChamDiem"].HeaderText = "Trạng thái chấm điểm";
             if (dgvDoAn.Columns["NgayBatDau"] != null)
                 dgvDoAn.Columns["NgayBatDau"].HeaderText = "Ngày bắt đầu";
             if (dgvDoAn.Columns["NgayKetThuc"] != null)
                 dgvDoAn.Columns["NgayKetThuc"].HeaderText = "Ngày kết thúc";
             if (dgvDoAn.Columns["Diem"] != null)
                 dgvDoAn.Columns["Diem"].HeaderText = "Điểm";
+            
+            UpdateDeleteButtonState();
         }
 
 
@@ -91,6 +114,11 @@ namespace QuanLyDoAn.View
                     dgvTienDo.Columns["GiaiDoan"].HeaderText = "Giai đoạn";
                 if (dgvTienDo.Columns["NgayNop"] != null)
                     dgvTienDo.Columns["NgayNop"].HeaderText = "Ngày nộp";
+                if (dgvTienDo.Columns["DiemTienDo"] != null)
+                {
+                    dgvTienDo.Columns["DiemTienDo"].HeaderText = "Điểm";
+                    dgvTienDo.Columns["DiemTienDo"].Width = 60;
+                }
                 if (dgvTienDo.Columns["NhanXet"] != null)
                     dgvTienDo.Columns["NhanXet"].HeaderText = "Nhận xét";
                 if (dgvTienDo.Columns["TrangThaiNop"] != null)
@@ -139,6 +167,7 @@ namespace QuanLyDoAn.View
             if (e.RowIndex >= 0 && dgvTienDo.Rows[e.RowIndex].DataBoundItem is TienDo tienDo)
             {
                 txtNhanXet.Text = tienDo.NhanXet ?? "";
+                txtDiemTienDo.Text = tienDo.DiemTienDo?.ToString() ?? "";
             }
         }
 
@@ -149,46 +178,97 @@ namespace QuanLyDoAn.View
                 string trangThaiNop = "DungHan";
                 if (giangVienController.CapNhatNhanXet(tienDo.MaTienDo, txtNhanXet.Text, trangThaiNop))
                 {
-                    MessageBox.Show("Cập nhật nhận xét thành công!");
+                    MessageBox.Show("Cập nhật nhận xét thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     DgvDoAn_SelectionChanged(null, null);
                     txtNhanXet.Clear();
                 }
             }
         }
 
-        private void BtnChamDiem_Click(object sender, EventArgs e)
+        private void BtnChamDiemTienDo_Click(object sender, EventArgs e)
         {
-            if (dgvDoAn.CurrentRow?.DataBoundItem != null)
+            if (dgvTienDo.CurrentRow?.DataBoundItem is TienDo tienDo)
             {
-                var maDeTai = dgvDoAn.CurrentRow.Cells["MaDeTai"].Value?.ToString();
-                var maGv = UserSession.CurrentUser?.MaGv;
-                if (string.IsNullOrEmpty(maDeTai)) return;
-                if (string.IsNullOrEmpty(maGv))
+                // Kiểm tra và lấy điểm từ TextBox
+                decimal? diemTienDo = null;
+                if (!string.IsNullOrWhiteSpace(txtDiemTienDo.Text))
                 {
-                    MessageBox.Show("Không xác định được thông tin giảng viên. Vui lòng đăng nhập lại.", 
-                        "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-                
-                if (decimal.TryParse(txtDiem.Text, out decimal diem) && diem >= 0 && diem <= 10)
-                {
-                    if (giangVienController.ChamDiem(maDeTai, diem, maGv))
+                    if (decimal.TryParse(txtDiemTienDo.Text, out decimal diem))
                     {
-                        MessageBox.Show("Chấm điểm thành công!");
-                        LoadData();
-                        txtDiem.Clear();
-                        txtNhanXetCuoi.Clear();
+                        if (diem < 0 || diem > 10)
+                        {
+                            MessageBox.Show("Điểm phải từ 0 đến 10!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+                        }
+                        diemTienDo = diem;
                     }
                     else
                     {
-                        MessageBox.Show("Không thể chấm điểm cho đề tài này. Vui lòng kiểm tra quyền sở hữu hoặc trạng thái đề tài.", 
-                            "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show("Điểm không hợp lệ!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
                     }
+                }
+                
+                string trangThaiNop = "DungHan";
+                if (giangVienController.CapNhatNhanXetVaDiem(tienDo.MaTienDo, txtNhanXet.Text, trangThaiNop, diemTienDo))
+                {
+                    MessageBox.Show("Lưu điểm tiến độ thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    DgvDoAn_SelectionChanged(null, null);
+                    txtNhanXet.Clear();
+                    txtDiemTienDo.Clear();
                 }
                 else
                 {
-                    MessageBox.Show("Điểm phải từ 0 đến 10!");
+                    MessageBox.Show("Không thể lưu điểm tiến độ!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn giai đoạn tiến độ cần chấm!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void BtnChamDiem_Click(object sender, EventArgs e)
+        {
+            var maDeTai = dgvDoAn.CurrentRow?.Cells["MaDeTai"].Value?.ToString();
+            var maGv = UserSession.CurrentUser?.MaGv;
+            
+            if (string.IsNullOrEmpty(maDeTai))
+            {
+                MessageBox.Show("Vui lòng chọn đồ án cần chấm điểm!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            
+            if (string.IsNullOrEmpty(maGv))
+            {
+                MessageBox.Show("Không xác định được thông tin giảng viên. Vui lòng đăng nhập lại.", 
+                    "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                var form = new ChamDiemChiTietForm(maDeTai, maGv);
+                
+                // Kiểm tra xem form có load thành công không
+                if (form.DialogResult == DialogResult.Cancel)
+                {
+                    form.Dispose();
+                    return;
+                }
+                
+                var result = form.ShowDialog();
+                form.Dispose();
+                
+                if (result == DialogResult.OK)
+                {
+                    MessageBox.Show("Chấm điểm thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadData();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

@@ -44,6 +44,12 @@ public partial class QuanLyDoAnContext : DbContext
 
     public virtual DbSet<YeuCauDangKy> YeuCauDangKies { get; set; }
 
+    public virtual DbSet<TieuChiDanhGia> TieuChiDanhGias { get; set; }
+
+    public virtual DbSet<ChiTietDanhGia> ChiTietDanhGias { get; set; }
+
+    public virtual DbSet<LoaiDanhGia> LoaiDanhGias { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -92,6 +98,9 @@ public partial class QuanLyDoAnContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("MaGV");
+            entity.Property(e => e.MaLoaiDanhGia)
+                .HasMaxLength(10)
+                .IsUnicode(false);
 
             entity.HasOne(d => d.MaDeTaiNavigation).WithMany(p => p.DanhGia)
                 .HasForeignKey(d => d.MaDeTai)
@@ -100,6 +109,10 @@ public partial class QuanLyDoAnContext : DbContext
             entity.HasOne(d => d.MaGvNavigation).WithMany(p => p.DanhGia)
                 .HasForeignKey(d => d.MaGv)
                 .HasConstraintName("FK__DanhGia__MaGV__1CBC4616");
+
+            entity.HasOne(d => d.MaLoaiDanhGiaNavigation).WithMany(p => p.DanhGias)
+                .HasForeignKey(d => d.MaLoaiDanhGia)
+                .HasConstraintName("FK__DanhGia__MaLoaiDanhGia");
         });
 
         modelBuilder.Entity<DoAn>(entity =>
@@ -356,6 +369,52 @@ public partial class QuanLyDoAnContext : DbContext
             entity.HasOne(d => d.MaSvNavigation).WithMany()
                 .HasForeignKey(d => d.MaSv)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<TieuChiDanhGia>(entity =>
+        {
+            entity.HasKey(e => e.MaTieuChi);
+            entity.ToTable("TieuChiDanhGia");
+            
+            entity.Property(e => e.TenTieuChi).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.MoTa).HasMaxLength(500);
+            entity.Property(e => e.TrongSo).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.DiemToiDa).HasColumnType("decimal(4, 2)");
+            entity.Property(e => e.MaLoaiDoAn)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.MaLoaiDoAnNavigation).WithMany(p => p.TieuChiDanhGias)
+                .HasForeignKey(d => d.MaLoaiDoAn);
+        });
+
+        modelBuilder.Entity<ChiTietDanhGia>(entity =>
+        {
+            entity.HasKey(e => e.MaChiTiet);
+            entity.ToTable("ChiTietDanhGia");
+            
+            entity.Property(e => e.Diem).HasColumnType("decimal(4, 2)");
+            entity.Property(e => e.NhanXet).HasMaxLength(500);
+
+            entity.HasOne(d => d.MaDanhGiaNavigation).WithMany(p => p.ChiTietDanhGias)
+                .HasForeignKey(d => d.MaDanhGia)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.MaTieuChiNavigation).WithMany(p => p.ChiTietDanhGias)
+                .HasForeignKey(d => d.MaTieuChi)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<LoaiDanhGia>(entity =>
+        {
+            entity.HasKey(e => e.MaLoaiDanhGia);
+            entity.ToTable("LoaiDanhGia");
+            
+            entity.Property(e => e.MaLoaiDanhGia)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.TenLoaiDanhGia).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.TrongSoDiem).HasColumnType("decimal(5, 2)");
         });
 
         OnModelCreatingPartial(modelBuilder);

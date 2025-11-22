@@ -15,7 +15,7 @@ namespace QuanLyDoAn.View
         private TextBox txtMaGv = null!;
         private TextBox txtHoTen = null!;
         private TextBox txtEmail = null!;
-        private TextBox txtSoDienThoai = null!;
+
         private TextBox txtBoMon = null!;
         private TextBox txtChucVu = null!;
         private ComboBox cboChuyenNganh = null!;
@@ -66,14 +66,14 @@ namespace QuanLyDoAn.View
             txtMaGv = CreateTextBox();
             txtHoTen = CreateTextBox();
             txtEmail = CreateTextBox();
-            txtSoDienThoai = CreateTextBox();
+
             txtBoMon = CreateTextBox();
             txtChucVu = CreateTextBox();
             cboChuyenNganh = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 200 };
 
             AddFormRow(formLayout, 0, "Mã giảng viên", txtMaGv, "Họ tên", txtHoTen);
-            AddFormRow(formLayout, 1, "Email", txtEmail, "Số điện thoại", txtSoDienThoai);
-            AddFormRow(formLayout, 2, "Bộ môn", txtBoMon, "Chức vụ", txtChucVu);
+            AddFormRow(formLayout, 1, "Email", txtEmail, "Chức vụ", txtChucVu);
+            AddFormRow(formLayout, 2, "Bộ môn", txtBoMon, string.Empty, null);
             AddFormRow(formLayout, 3, "Chuyên ngành", cboChuyenNganh, string.Empty, null);
 
             var buttonPanel = new FlowLayoutPanel
@@ -146,16 +146,24 @@ namespace QuanLyDoAn.View
         private void LoadData()
         {
             var data = controller.LayDanhSachGiangVien();
-            dgvGiangVien.DataSource = data;
+            
+            // Tạo danh sách với tên chuyên ngành
+            var displayList = data.Select(gv => new
+            {
+                gv.MaGv,
+                gv.HoTen,
+                gv.Email,
+                gv.BoMon,
+                gv.ChucVu,
+                TenChuyenNganh = gv.MaChuyenNganhNavigation?.TenChuyenNganh ?? "",
+                gv.MaChuyenNganh
+            }).ToList();
+            
+            dgvGiangVien.DataSource = displayList;
 
-            if (dgvGiangVien.Columns["MaChuyenNganhNavigation"] != null)
-                dgvGiangVien.Columns["MaChuyenNganhNavigation"].Visible = false;
-
-            if (dgvGiangVien.Columns["TaiKhoans"] != null)
-                dgvGiangVien.Columns["TaiKhoans"].Visible = false;
-
-            if (dgvGiangVien.Columns["DoAns"] != null)
-                dgvGiangVien.Columns["DoAns"].Visible = false;
+            // Ẩn cột mã chuyên ngành
+            if (dgvGiangVien.Columns["MaChuyenNganh"] != null)
+                dgvGiangVien.Columns["MaChuyenNganh"].Visible = false;
 
             if (dgvGiangVien.Columns["MaGv"] != null)
                 dgvGiangVien.Columns["MaGv"].HeaderText = "Mã GV";
@@ -163,26 +171,32 @@ namespace QuanLyDoAn.View
                 dgvGiangVien.Columns["HoTen"].HeaderText = "Họ tên";
             if (dgvGiangVien.Columns["Email"] != null)
                 dgvGiangVien.Columns["Email"].HeaderText = "Email";
-            if (dgvGiangVien.Columns["SoDienThoai"] != null)
-                dgvGiangVien.Columns["SoDienThoai"].HeaderText = "Số điện thoại";
             if (dgvGiangVien.Columns["BoMon"] != null)
                 dgvGiangVien.Columns["BoMon"].HeaderText = "Bộ môn";
             if (dgvGiangVien.Columns["ChucVu"] != null)
                 dgvGiangVien.Columns["ChucVu"].HeaderText = "Chức vụ";
-            if (dgvGiangVien.Columns["MaChuyenNganh"] != null)
-                dgvGiangVien.Columns["MaChuyenNganh"].HeaderText = "Mã chuyên ngành";
+            if (dgvGiangVien.Columns["TenChuyenNganh"] != null)
+                dgvGiangVien.Columns["TenChuyenNganh"].HeaderText = "Chuyên ngành";
         }
 
         private void DgvGiangVien_SelectionChanged(object? sender, EventArgs e)
         {
-            if (dgvGiangVien.CurrentRow?.DataBoundItem is not GiangVien gv) return;
-            txtMaGv.Text = gv.MaGv;
-            txtHoTen.Text = gv.HoTen ?? "";
-            txtEmail.Text = gv.Email ?? "";
-            txtSoDienThoai.Text = gv.SoDienThoai ?? "";
-            txtBoMon.Text = gv.BoMon ?? "";
-            txtChucVu.Text = gv.ChucVu ?? "";
-            cboChuyenNganh.SelectedValue = gv.MaChuyenNganh ?? "";
+            if (dgvGiangVien.CurrentRow?.DataBoundItem == null) return;
+            
+            var item = dgvGiangVien.CurrentRow.DataBoundItem;
+            var maGv = item.GetType().GetProperty("MaGv")?.GetValue(item)?.ToString() ?? "";
+            var hoTen = item.GetType().GetProperty("HoTen")?.GetValue(item)?.ToString() ?? "";
+            var email = item.GetType().GetProperty("Email")?.GetValue(item)?.ToString() ?? "";
+            var boMon = item.GetType().GetProperty("BoMon")?.GetValue(item)?.ToString() ?? "";
+            var chucVu = item.GetType().GetProperty("ChucVu")?.GetValue(item)?.ToString() ?? "";
+            var maChuyenNganh = item.GetType().GetProperty("MaChuyenNganh")?.GetValue(item)?.ToString() ?? "";
+            
+            txtMaGv.Text = maGv;
+            txtHoTen.Text = hoTen;
+            txtEmail.Text = email;
+            txtBoMon.Text = boMon;
+            txtChucVu.Text = chucVu;
+            cboChuyenNganh.SelectedValue = maChuyenNganh;
             txtMaGv.Enabled = false;
         }
 
@@ -247,7 +261,6 @@ namespace QuanLyDoAn.View
             {
                 HoTen = txtHoTen.Text.Trim(),
                 Email = txtEmail.Text.Trim(),
-                SoDienThoai = txtSoDienThoai.Text.Trim(),
                 BoMon = txtBoMon.Text.Trim(),
                 ChucVu = txtChucVu.Text.Trim(),
                 MaChuyenNganh = cboChuyenNganh.SelectedValue?.ToString()
@@ -269,7 +282,6 @@ namespace QuanLyDoAn.View
             txtMaGv.Clear();
             txtHoTen.Clear();
             txtEmail.Clear();
-            txtSoDienThoai.Clear();
             txtBoMon.Clear();
             txtChucVu.Clear();
             cboChuyenNganh.SelectedIndex = -1;

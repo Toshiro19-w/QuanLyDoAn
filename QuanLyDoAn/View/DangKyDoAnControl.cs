@@ -30,6 +30,8 @@ namespace QuanLyDoAn.View
                 if (daCoDoAn)
                 {
                     dgvDoAn.DataSource = null;
+                    MessageBox.Show("Bạn đã được phân công đồ án. Không thể đăng ký thêm đồ án khác.", 
+                        "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
 

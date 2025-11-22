@@ -58,7 +58,6 @@ namespace QuanLyDoAn.Controller
 
                 entity.HoTen = giangVien.HoTen;
                 entity.Email = giangVien.Email;
-                entity.SoDienThoai = giangVien.SoDienThoai;
                 entity.BoMon = giangVien.BoMon;
                 entity.ChucVu = giangVien.ChucVu;
                 entity.MaChuyenNganh = giangVien.MaChuyenNganh;

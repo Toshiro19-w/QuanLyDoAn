@@ -30,14 +30,16 @@ namespace QuanLyDoAn
         {
             string tenDangNhap = txtTenDangNhap.Text;
             string matKhau = txtMatKhau.Text;
+            
+            // Debug: Hiển thị hash
+            string hash = Utils.HashHelper.HashPassword(matKhau);
+            System.Diagnostics.Debug.WriteLine($"Password: {matKhau}");
+            System.Diagnostics.Debug.WriteLine($"Hash: {hash}");
 
             var taiKhoan = taiKhoanController.DangNhap(tenDangNhap, matKhau);
             if (taiKhoan != null)
             {
                 UserSession.CurrentUser = taiKhoan;
-                
-                MessageBox.Show($"Đăng nhập thành công!\nVai trò: {taiKhoan.VaiTro}", 
-                    "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 
                 MainForm mainForm = new MainForm();
                 this.Hide();

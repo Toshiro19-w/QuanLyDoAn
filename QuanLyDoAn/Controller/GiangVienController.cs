@@ -12,12 +12,31 @@ namespace QuanLyDoAn.Controller
         public List<DoAn> LayDoAnDuocPhanCong(string maGv)
         {
             using var context = new QuanLyDoAnContext();
-            return context.DoAns
+            
+            // Lấy đồ án hướng dẫn
+            var doAnHuongDan = context.DoAns
                 .Include(d => d.MaSvNavigation)
                 .Include(d => d.MaLoaiDoAnNavigation)
                 .Include(d => d.MaTrangThaiNavigation)
                 .Where(d => d.MaGv == maGv)
                 .ToList();
+            
+            // Lấy đồ án được phân công chấm (PB, HĐ) từ bảng DanhGia
+            var maDeTaiDuocCham = context.DanhGia
+                .Where(d => d.MaGv == maGv)
+                .Select(d => d.MaDeTai)
+                .Distinct()
+                .ToList();
+            
+            var doAnDuocCham = context.DoAns
+                .Include(d => d.MaSvNavigation)
+                .Include(d => d.MaLoaiDoAnNavigation)
+                .Include(d => d.MaTrangThaiNavigation)
+                .Where(d => maDeTaiDuocCham.Contains(d.MaDeTai) && d.MaGv != maGv)
+                .ToList();
+            
+            // Gộp lại và loại trùng
+            return doAnHuongDan.Union(doAnDuocCham).ToList();
         }
 
         public List<TienDo> LayTienDoTheoDoAn(string maDeTai)
@@ -40,6 +59,41 @@ namespace QuanLyDoAn.Controller
                     new SqlParameter("@NhanXet", nhanXet),
                     new SqlParameter("@TrangThaiNop", trangThaiNop)
                 );
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool CapNhatNhanXetVaDiem(int maTienDo, string nhanXet, string trangThaiNop, decimal? diemTienDo)
+        {
+            try
+            {
+                using var context = new QuanLyDoAnContext();
+                var tienDo = context.TienDos.Find(maTienDo);
+                if (tienDo == null) return false;
+                
+                tienDo.NhanXet = nhanXet;
+                tienDo.TrangThaiNop = trangThaiNop;
+                tienDo.DiemTienDo = diemTienDo;
+                
+                context.SaveChanges();
+                
+                // Tự động tính lại điểm tổng kết
+                if (!string.IsNullOrEmpty(tienDo.MaDeTai))
+                {
+                    try
+                    {
+                        context.Database.ExecuteSqlRaw(
+                            "EXEC sp_TinhDiemTongKetMoi @MaDeTai",
+                            new Microsoft.Data.SqlClient.SqlParameter("@MaDeTai", tienDo.MaDeTai)
+                        );
+                    }
+                    catch { }
+                }
+                
                 return true;
             }
             catch

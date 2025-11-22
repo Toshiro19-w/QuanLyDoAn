@@ -16,8 +16,7 @@ namespace QuanLyDoAn.View
         private Button btnThem;
         private Button btnSua;
         private Button btnXoa;
-        private Button btnTaoDeTaiMoi;
-        private Button btnDuyetYeuCau;
+
         private Label lblMaDeTai;
         private Label lblTenDeTai;
         private Label lblMaSv;
@@ -26,7 +25,7 @@ namespace QuanLyDoAn.View
         private Label lblNgayKetThuc;
         private Label lblDiem;
         private Label lblTimKiem;
-        private DataGridViewTextBoxColumn MaLoaiDoAn;
+
 
         protected override void Dispose(bool disposing)
         {
@@ -40,7 +39,7 @@ namespace QuanLyDoAn.View
         private void InitializeComponent()
         {
             dgvDoAn = new DataGridView();
-            MaLoaiDoAn = new DataGridViewTextBoxColumn();
+
             txtMaDeTai = new TextBox();
             txtTenDeTai = new TextBox();
             cmbMaSv = new ComboBox();
@@ -53,8 +52,7 @@ namespace QuanLyDoAn.View
             btnThem = new Button();
             btnSua = new Button();
             btnXoa = new Button();
-            btnTaoDeTaiMoi = new Button();
-            btnDuyetYeuCau = new Button();
+
             lblMaDeTai = new Label();
             lblTenDeTai = new Label();
             lblMaSv = new Label();
@@ -76,12 +74,7 @@ namespace QuanLyDoAn.View
             dgvDoAn.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             dgvDoAn.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvDoAn.ColumnHeadersHeight = 29;
-            // Add design-time column for Loại đồ án so runtime DisplayIndex assignments are valid
-            MaLoaiDoAn.Name = "MaLoaiDoAn";
-            MaLoaiDoAn.HeaderText = "Loại đồ án";
-            MaLoaiDoAn.Width = 140;
-            MaLoaiDoAn.ReadOnly = true;
-            dgvDoAn.Columns.AddRange(new DataGridViewColumn[] { MaLoaiDoAn });
+
             dgvDoAn.Location = new Point(3, 302);
             dgvDoAn.Name = "dgvDoAn";
             dgvDoAn.RowHeadersWidth = 51;
@@ -305,8 +298,7 @@ namespace QuanLyDoAn.View
             Controls.Add(btnThem);
             Controls.Add(btnSua);
             Controls.Add(btnXoa);
-            Controls.Add(btnTaoDeTaiMoi);
-            Controls.Add(btnDuyetYeuCau);
+
             Name = "QuanLyDoAnControl";
             Size = new Size(1385, 816);
             ((System.ComponentModel.ISupportInitialize)dgvDoAn).EndInit();

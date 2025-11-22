@@ -17,5 +17,7 @@ public partial class TienDo
 
     public string? TrangThaiNop { get; set; }
 
+    public decimal? DiemTienDo { get; set; }
+
     public virtual DoAn? MaDeTaiNavigation { get; set; }
 }

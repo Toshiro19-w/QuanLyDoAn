@@ -10,4 +10,6 @@ public partial class LoaiDoAn
     public string? TenLoaiDoAn { get; set; }
 
     public virtual ICollection<DoAn> DoAns { get; set; } = new List<DoAn>();
+
+    public virtual ICollection<TieuChiDanhGia> TieuChiDanhGias { get; set; } = new List<TieuChiDanhGia>();
 }

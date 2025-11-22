@@ -137,14 +137,24 @@ namespace QuanLyDoAn.View
         private void LoadData()
         {
             var data = controller.LayDanhSachSinhVien();
-            dgvSinhVien.DataSource = data;
+            
+            // Tạo danh sách với tên chuyên ngành
+            var displayList = data.Select(sv => new
+            {
+                sv.MaSv,
+                sv.HoTen,
+                sv.Email,
+                sv.SoDienThoai,
+                sv.Lop,
+                TenChuyenNganh = sv.MaChuyenNganhNavigation?.TenChuyenNganh ?? "",
+                sv.MaChuyenNganh
+            }).ToList();
+            
+            dgvSinhVien.DataSource = displayList;
 
-            if (dgvSinhVien.Columns["MaChuyenNganhNavigation"] != null)
-                dgvSinhVien.Columns["MaChuyenNganhNavigation"].Visible = false;
-            if (dgvSinhVien.Columns["TaiKhoans"] != null)
-                dgvSinhVien.Columns["TaiKhoans"].Visible = false;
-            if (dgvSinhVien.Columns["DoAn"] != null)
-                dgvSinhVien.Columns["DoAn"].Visible = false;
+            // Ẩn cột mã chuyên ngành
+            if (dgvSinhVien.Columns["MaChuyenNganh"] != null)
+                dgvSinhVien.Columns["MaChuyenNganh"].Visible = false;
 
             if (dgvSinhVien.Columns["MaSv"] != null)
                 dgvSinhVien.Columns["MaSv"].HeaderText = "Mã SV";
@@ -156,19 +166,28 @@ namespace QuanLyDoAn.View
                 dgvSinhVien.Columns["SoDienThoai"].HeaderText = "Số điện thoại";
             if (dgvSinhVien.Columns["Lop"] != null)
                 dgvSinhVien.Columns["Lop"].HeaderText = "Lớp";
-            if (dgvSinhVien.Columns["MaChuyenNganh"] != null)
-                dgvSinhVien.Columns["MaChuyenNganh"].HeaderText = "Mã chuyên ngành";
+            if (dgvSinhVien.Columns["TenChuyenNganh"] != null)
+                dgvSinhVien.Columns["TenChuyenNganh"].HeaderText = "Chuyên ngành";
         }
 
         private void DgvSinhVien_SelectionChanged(object? sender, EventArgs e)
         {
-            if (dgvSinhVien.CurrentRow?.DataBoundItem is not SinhVien sv) return;
-            txtMaSv.Text = sv.MaSv;
-            txtHoTen.Text = sv.HoTen ?? "";
-            txtEmail.Text = sv.Email ?? "";
-            txtSoDienThoai.Text = sv.SoDienThoai ?? "";
-            txtLop.Text = sv.Lop ?? "";
-            cboChuyenNganh.SelectedValue = sv.MaChuyenNganh ?? "";
+            if (dgvSinhVien.CurrentRow?.DataBoundItem == null) return;
+            
+            var item = dgvSinhVien.CurrentRow.DataBoundItem;
+            var maSv = item.GetType().GetProperty("MaSv")?.GetValue(item)?.ToString() ?? "";
+            var hoTen = item.GetType().GetProperty("HoTen")?.GetValue(item)?.ToString() ?? "";
+            var email = item.GetType().GetProperty("Email")?.GetValue(item)?.ToString() ?? "";
+            var soDienThoai = item.GetType().GetProperty("SoDienThoai")?.GetValue(item)?.ToString() ?? "";
+            var lop = item.GetType().GetProperty("Lop")?.GetValue(item)?.ToString() ?? "";
+            var maChuyenNganh = item.GetType().GetProperty("MaChuyenNganh")?.GetValue(item)?.ToString() ?? "";
+            
+            txtMaSv.Text = maSv;
+            txtHoTen.Text = hoTen;
+            txtEmail.Text = email;
+            txtSoDienThoai.Text = soDienThoai;
+            txtLop.Text = lop;
+            cboChuyenNganh.SelectedValue = maChuyenNganh;
             txtMaSv.Enabled = false;
         }
 

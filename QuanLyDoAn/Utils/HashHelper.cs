@@ -8,11 +8,22 @@ namespace QuanLyDoAn.Utils
     {
         public static string HashPassword(string password)
         {
-            using (SHA256 sha256Hash = SHA256.Create())
+            if (string.IsNullOrEmpty(password))
+                return string.Empty;
+                
+            using (var sha256 = SHA256.Create())
             {
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(password));
-                return Convert.ToBase64String(bytes);
+                // Đảm bảo sử dụng UTF8 encoding
+                byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+                byte[] hashBytes = sha256.ComputeHash(passwordBytes);
+                return Convert.ToBase64String(hashBytes);
             }
+        }
+        
+        public static bool VerifyPassword(string password, string hash)
+        {
+            string passwordHash = HashPassword(password);
+            return passwordHash == hash;
         }
     }
 }

@@ -12,34 +12,129 @@ namespace QuanLyDoAn.View
     public partial class QuanLyDoAnControl : UserControl
     {
         private DoAnController doAnController;
-        private System.Collections.IList loaiDoAnList;
-        private Dictionary<string, string> loaiDoAnMap; // Map MaLoaiDoAn -> TenLoaiDoAn
-        private bool suppressCellValueChanged = false;
-        private string? previousMaLoaiValue = null;
         private bool suppressComboChange = false;
 
         public QuanLyDoAnControl()
         {
-            InitializeComponent();
-            doAnController = new DoAnController();
-            loaiDoAnMap = new Dictionary<string, string>();
-            LoadComboBoxData();
-            LoadData();
-            // subscribe to events for editable combobox column
-            dgvDoAn.CurrentCellDirtyStateChanged += DgvDoAn_CurrentCellDirtyStateChanged;
-            dgvDoAn.CellValueChanged += DgvDoAn_CellValueChanged;
-            dgvDoAn.CellBeginEdit += DgvDoAn_CellBeginEdit;
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("=== BẮT ĐẦU CONSTRUCTOR ===");
+                
+                InitializeComponents();
+                InitializeController();
+                InitializeComboBoxData();
+                SetupEventHandlers();
+                ConfigureDateTimePickers();
+                ConfigureAuthorization();
+                ApplyTheme();
+                
+                System.Diagnostics.Debug.WriteLine("=== KẾT THÚC CONSTRUCTOR THÀNH CÔNG ===");
+            }
+            catch (Exception ex)
+            {
+                HandleConstructorError(ex);
+                throw;
+            }
+        }
 
-            // handle top-level combo change to update MaLoai for selected row
+        private void InitializeComponents()
+        {
+            System.Diagnostics.Debug.WriteLine("Đang gọi InitializeComponent()...");
+            InitializeComponent();
+            System.Diagnostics.Debug.WriteLine("✓ InitializeComponent() thành công");
+        }
+
+        private void InitializeController()
+        {
+            System.Diagnostics.Debug.WriteLine("Đang khởi tạo DoAnController...");
+            doAnController = new DoAnController();
+            System.Diagnostics.Debug.WriteLine("✓ DoAnController khởi tạo thành công");
+        }
+
+        private void InitializeComboBoxData()
+        {
+            System.Diagnostics.Debug.WriteLine("Đang gọi LoadComboBoxData()...");
+            LoadComboBoxData();
+            System.Diagnostics.Debug.WriteLine("✓ LoadComboBoxData() thành công");
+        }
+
+        private void SetupEventHandlers()
+        {
+            System.Diagnostics.Debug.WriteLine("Đang thêm event handlers...");
+            
+            SetupDataGridViewEvents();
+            SetupComboBoxEvents();
+            SetupLoadEvent();
+            
+            System.Diagnostics.Debug.WriteLine("✓ Event handlers đã được thêm");
+        }
+
+        private void SetupDataGridViewEvents()
+        {
+            if (dgvDoAn != null)
+            {
+                dgvDoAn.DataBindingComplete += DgvDoAn_DataBindingComplete;
+                System.Diagnostics.Debug.WriteLine("✓ DataGridView event handler đã được thêm");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("CẢNH BÁO: dgvDoAn is null");
+            }
+        }
+
+        private void SetupComboBoxEvents()
+        {
             if (cmbMaLoai != null)
             {
                 cmbMaLoai.SelectionChangeCommitted += CmbMaLoai_SelectionChangeCommitted;
+                System.Diagnostics.Debug.WriteLine("✓ CmbMaLoai event handler đã được thêm");
             }
-            
-            // configure controls by role (shows/hides create/approve buttons)
-            AuthorizationHelper.ConfigureControlsByRole(this.Controls);
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("CẢNH BÁO: cmbMaLoai is null");
+            }
+        }
 
-            ApplyTheme();
+        private void SetupLoadEvent()
+        {
+            this.Load += (s, e) => LoadData();
+        }
+
+        private void ConfigureDateTimePickers()
+        {
+            System.Diagnostics.Debug.WriteLine("Đang cấu hình DateTimePicker...");
+            
+            if (dtpNgayBatDau != null && dtpNgayKetThuc != null)
+            {
+                dtpNgayBatDau.Format = DateTimePickerFormat.Custom;
+                dtpNgayBatDau.CustomFormat = "dd/MM/yyyy";
+                dtpNgayKetThuc.Format = DateTimePickerFormat.Custom;
+                dtpNgayKetThuc.CustomFormat = "dd/MM/yyyy";
+                System.Diagnostics.Debug.WriteLine("✓ DateTimePicker đã được cấu hình");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("CẢNH BÁO: DateTimePicker controls are null");
+            }
+        }
+
+        private void ConfigureAuthorization()
+        {
+            System.Diagnostics.Debug.WriteLine("Đang cấu hình quyền...");
+            AuthorizationHelper.ConfigureControlsByRole(this.Controls);
+            System.Diagnostics.Debug.WriteLine("✓ Cấu hình quyền thành công");
+        }
+
+        private void HandleConstructorError(Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"=== LỖI TRONG CONSTRUCTOR ===");
+            System.Diagnostics.Debug.WriteLine($"Message: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
+            if (ex.InnerException != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"InnerException: {ex.InnerException.Message}");
+            }
+            MessageBox.Show($"Lỗi trong constructor: {ex.Message}\n\nStackTrace: {ex.StackTrace}\n\nInnerException: {ex.InnerException?.Message}", "Lỗi Debug", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         private void CmbMaLoai_SelectionChangeCommitted(object? sender, EventArgs e)
@@ -66,148 +161,95 @@ namespace QuanLyDoAn.View
             LoadData();
         }
 
-        private void DgvDoAn_CellBeginEdit(object? sender, DataGridViewCellCancelEventArgs e)
-        {
-            if (e.RowIndex < 0) return;
-            if (dgvDoAn.Columns[e.ColumnIndex].Name != "MaLoaiDoAn") return;
-            previousMaLoaiValue = dgvDoAn.Rows[e.RowIndex].Cells["MaLoaiDoAn"].Value?.ToString();
-        }
+
 
         private void LoadData()
         {
             try
             {
-                // Load loai doan data FIRST before loading grid data
-                EnsureLoaiDoAnColumn();
+                if (doAnController == null || dgvDoAn == null) return;
 
                 var danhSachDoAn = doAnController.LayDanhSachDoAn();
                 dgvDoAn.DataSource = danhSachDoAn;
-
-                // Set the MaLoaiDoAn cell values for each row from DB (so combobox shows current value)
-                using (var context = new QuanLyDoAnContext())
-                {
-                    suppressCellValueChanged = true;
-                    foreach (DataGridViewRow row in dgvDoAn.Rows)
-                    {
-                        if (row.DataBoundItem is DoAnViewModel vm)
-                        {
-                            var doAnEntity = context.DoAns.Find(vm.MaDeTai);
-                            if (doAnEntity != null && dgvDoAn.Columns["MaLoaiDoAn"] != null)
-                            {
-                                var maLoai = doAnEntity.MaLoaiDoAn ?? "";
-                                row.Cells["MaLoaiDoAn"].Value = maLoai;
-                            }
-                        }
-                    }
-                    suppressCellValueChanged = false;
-                }
-
-                // Configure display headers and order including the new "Loại đồ án" column
-                if (dgvDoAn.Columns["MaDeTai"] != null)
-                {
-                    dgvDoAn.Columns["MaDeTai"].HeaderText = "Mã đề tài";
-                    dgvDoAn.Columns["MaDeTai"].DisplayIndex = 0;
-                }
-                if (dgvDoAn.Columns["TenDeTai"] != null)
-                {
-                    dgvDoAn.Columns["TenDeTai"].HeaderText = "Tên đề tài";
-                    dgvDoAn.Columns["TenDeTai"].DisplayIndex = 1;
-                }
-                // new editable column
-                if (dgvDoAn.Columns["MaLoaiDoAn"] != null)
-                {
-                    dgvDoAn.Columns["MaLoaiDoAn"].HeaderText = "Loại đồ án";
-                    dgvDoAn.Columns["MaLoaiDoAn"].DisplayIndex = 2;
-                }
-                if (dgvDoAn.Columns["DanhSachSinhVien"] != null)
-                {
-                    dgvDoAn.Columns["DanhSachSinhVien"].HeaderText = "Sinh viên";
-                    dgvDoAn.Columns["DanhSachSinhVien"].DisplayIndex = 3;
-                }
-                if (dgvDoAn.Columns["TenGiangVien"] != null)
-                {
-                    dgvDoAn.Columns["TenGiangVien"].HeaderText = "Giảng viên hướng dẫn";
-                    dgvDoAn.Columns["TenGiangVien"].DisplayIndex = 4;
-                }
-                if (dgvDoAn.Columns["NgayBatDau"] != null)
-                {
-                    dgvDoAn.Columns["NgayBatDau"].HeaderText = "Ngày bắt đầu";
-                    dgvDoAn.Columns["NgayBatDau"].DisplayIndex = 5;
-                }
-                if (dgvDoAn.Columns["NgayKetThuc"] != null)
-                {
-                    dgvDoAn.Columns["NgayKetThuc"].HeaderText = "Ngày kết thúc";
-                    dgvDoAn.Columns["NgayKetThuc"].DisplayIndex = 6;
-                }
-                if (dgvDoAn.Columns["TrangThai"] != null)
-                {
-                    dgvDoAn.Columns["TrangThai"].HeaderText = "Trạng thái";
-                    dgvDoAn.Columns["TrangThai"].DisplayIndex = 7;
-                }
-                if (dgvDoAn.Columns["DiemText"] != null)
-                {
-                    dgvDoAn.Columns["DiemText"].HeaderText = "Điểm";
-                    dgvDoAn.Columns["DiemText"].DisplayIndex = 8;
-                }
+                ConfigureColumns();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Lỗi khi tải dữ liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-        /// <summary>
-        /// Populate the design-time DataGridViewComboBoxColumn named "MaLoaiDoAn".
-        /// NOTE: The DataGridViewComboBoxColumn should be added in the designer with Name = "MaLoaiDoAn".
-        /// This method will set its DataSource/DisplayMember/ValueMember at runtime.
-        /// </summary>
-        private void EnsureLoaiDoAnColumn()
+        
+        private void DgvDoAn_DataBindingComplete(object? sender, DataGridViewBindingCompleteEventArgs e)
         {
-            // If the column was not added in designer, do nothing and show a debug message.
-            if (dgvDoAn.Columns["MaLoaiDoAn"] == null)
-            {
-                // It's intentional: require developer to add a DataGridViewComboBoxColumn in design with Name = "MaLoaiDoAn".
-                return;
-            }
-
+            ConfigureColumns();
+        }
+        
+        private void ConfigureColumns()
+        {
             try
             {
-                using var context = new QuanLyDoAnContext();
-                // load list of types: assume entity has MaLoaiDoAn and TenLoaiDoAn
-                loaiDoAnList = context.LoaiDoAns
-                    .Select(l => new { l.MaLoaiDoAn, l.TenLoaiDoAn })
-                    .ToList();
+                // Kiểm tra điều kiện cơ bản
+                if (dgvDoAn?.Columns == null || dgvDoAn.Columns.Count == 0)
+                    return;
 
-                // Build map for quick lookup
-                loaiDoAnMap.Clear();
-                foreach (dynamic item in loaiDoAnList)
+                // Sử dụng Invoke nếu cần thiết
+                if (dgvDoAn.InvokeRequired)
                 {
-                    loaiDoAnMap[item.MaLoaiDoAn] = item.TenLoaiDoAn;
+                    dgvDoAn.Invoke(new Action(ConfigureColumns));
+                    return;
                 }
 
-                // configure grid combo column
-                if (dgvDoAn.Columns["MaLoaiDoAn"] is DataGridViewComboBoxColumn comboColumn)
-                {
-                    comboColumn.DataSource = loaiDoAnList;
-                    comboColumn.DisplayMember = "TenLoaiDoAn";
-                    comboColumn.ValueMember = "MaLoaiDoAn";
-                    comboColumn.DisplayStyle = DataGridViewComboBoxDisplayStyle.DropDownButton;
-                    comboColumn.FlatStyle = FlatStyle.Flat;
-                }
-
-                // populate the top-level cmbMaLoai (outside grid) so user can edit via that combobox
-                if (cmbMaLoai != null)
-                {
-                    cmbMaLoai.DataSource = loaiDoAnList;
-                    cmbMaLoai.DisplayMember = "TenLoaiDoAn";
-                    cmbMaLoai.ValueMember = "MaLoaiDoAn";
-                }
+                // Ẩn cột không cần thiết
+                if (dgvDoAn.Columns["MaLoaiDoAn"] != null)
+                    dgvDoAn.Columns["MaLoaiDoAn"].Visible = false;
+                if (dgvDoAn.Columns["CoChamDiemChiTiet"] != null)
+                    dgvDoAn.Columns["CoChamDiemChiTiet"].Visible = false;
+                
+                // Cấu hình từng column một cách an toàn
+                ConfigureColumn("MaDeTai", "Mã đề tài", 0, 100);
+                ConfigureColumn("TenDeTai", "Tên đề tài", 1, 300);
+                ConfigureColumn("SinhVien", "Sinh viên", 2, 130);
+                ConfigureColumn("TenGiangVien", "Giảng viên", 3, 150);
+                ConfigureColumn("NgayBatDau", "Ngày bắt đầu", 4, 100, "dd/MM/yyyy");
+                ConfigureColumn("NgayKetThuc", "Ngày kết thúc", 5, 100, "dd/MM/yyyy");
+                ConfigureColumn("TrangThai", "Trạng thái", 6, 100);
+                ConfigureColumn("DiemText", "Điểm", 7, 80, null, DataGridViewContentAlignment.MiddleCenter);
+                ConfigureColumn("LoaiDoAn", "Loại đồ án", 8, 120);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi tải danh sách loại đồ án: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                System.Diagnostics.Debug.WriteLine($"Lỗi ConfigureColumns: {ex.Message}");
             }
         }
+
+        private void ConfigureColumn(string columnName, string headerText, int displayIndex, int width, 
+            string format = null, DataGridViewContentAlignment? alignment = null)
+        {
+            try
+            {
+                if (dgvDoAn?.Columns?[columnName] == null) return;
+
+                var column = dgvDoAn.Columns[columnName];
+                column.HeaderText = headerText;
+                column.DisplayIndex = displayIndex;
+                column.Width = width;
+
+                if (!string.IsNullOrEmpty(format))
+                    column.DefaultCellStyle.Format = format;
+
+                if (alignment.HasValue)
+                    column.DefaultCellStyle.Alignment = alignment.Value;
+
+                if (columnName == "TenDeTai")
+                    column.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi cấu hình column {columnName}: {ex.Message}");
+            }
+        }
+
+
 
         private void DgvDoAn_CurrentCellDirtyStateChanged(object? sender, EventArgs e)
         {
@@ -218,13 +260,7 @@ namespace QuanLyDoAn.View
             }
         }
 
-        private void DgvDoAn_CellValueChanged(object? sender, DataGridViewCellEventArgs e)
-        {
-            // Ignore direct edits on the grid for MaLoaiDoAn (grid is display-only)
-            if (e.RowIndex < 0 || dgvDoAn.Columns[e.ColumnIndex].Name == "MaLoaiDoAn") return;
 
-            // Keep existing behavior for other columns if needed
-        }
 
         private void dgvDoAn_CellClick(object sender, DataGridViewCellEventArgs e)
         {
@@ -232,52 +268,12 @@ namespace QuanLyDoAn.View
             {
                 try
                 {
-                    // Load thông tin cơ bản
-                    txtMaDeTai.Text = doAn.MaDeTai;
-                    txtTenDeTai.Text = doAn.TenDeTai;
-                    txtDiem.Text = doAn.DiemText == "Chưa có điểm" ? "" : doAn.DiemText;
-                    
-                    // Load mô tả từ database
-                    using var context = new QuanLyDoAnContext();
-                    var doAnEntity = context.DoAns.Find(doAn.MaDeTai);
-                    if (txtMoTa != null && doAnEntity != null)
-                        txtMoTa.Text = doAnEntity.MoTa ?? "";
-
-                    // Chọn giảng viên
-                    for (int i = 0; i < cmbMaGv.Items.Count; i++)
-                    {
-                        var item = cmbMaGv.Items[i];
-                        if (item.GetType().GetProperty("HoTen")?.GetValue(item)?.ToString() == doAn.TenGiangVien)
-                        {
-                            cmbMaGv.SelectedIndex = i;
-                            break;
-                        }
-                    }
-                    
-                    // Chọn sinh viên
-                    for (int i = 0; i < cmbMaSv.Items.Count; i++)
-                    {
-                        var item = cmbMaSv.Items[i];
-                        if (item.GetType().GetProperty("HoTen")?.GetValue(item)?.ToString() == doAn.DanhSachSinhVien)
-                        {
-                            cmbMaSv.SelectedIndex = i;
-                            break;
-                        }
-                    }
-
-                    // Set LoaiDoAn combobox (outside grid) to value from DB
-                    if (cmbMaLoai != null && doAnEntity != null)
-                    {
-                        suppressComboChange = true;
-                        cmbMaLoai.SelectedValue = doAnEntity.MaLoaiDoAn ?? "";
-                        suppressComboChange = false;
-                    }
-                    
-                    // Load ngày tháng
-                    if (doAn.NgayBatDau.HasValue)
-                        dtpNgayBatDau.Value = doAn.NgayBatDau.Value.ToDateTime(TimeOnly.MinValue);
-                    if (doAn.NgayKetThuc.HasValue)
-                        dtpNgayKetThuc.Value = doAn.NgayKetThuc.Value.ToDateTime(TimeOnly.MinValue);
+                    LoadBasicInfo(doAn);
+                    LoadDescription(doAn);
+                    LoadGiangVienSelection(doAn);
+                    LoadSinhVienSelection(doAn);
+                    LoadLoaiDoAnSelection(doAn);
+                    LoadDateValues(doAn);
                 }
                 catch (Exception ex)
                 {
@@ -286,75 +282,131 @@ namespace QuanLyDoAn.View
             }
         }
 
+        private void LoadBasicInfo(DoAnViewModel doAn)
+        {
+            txtMaDeTai.Text = doAn.MaDeTai;
+            txtTenDeTai.Text = doAn.TenDeTai;
+            txtDiem.Text = (doAn.DiemText == "Chưa có điểm" || string.IsNullOrEmpty(doAn.DiemText)) ? "" : doAn.DiemText;
+        }
+
+        private void LoadDescription(DoAnViewModel doAn)
+        {
+            using var context = new QuanLyDoAnContext();
+            var doAnEntity = context.DoAns.Find(doAn.MaDeTai);
+            if (txtMoTa != null && doAnEntity != null)
+                txtMoTa.Text = doAnEntity.MoTa ?? "";
+        }
+
+        private void LoadGiangVienSelection(DoAnViewModel doAn)
+        {
+            for (int i = 0; i < cmbMaGv.Items.Count; i++)
+            {
+                var item = cmbMaGv.Items[i];
+                if (item.GetType().GetProperty("HoTen")?.GetValue(item)?.ToString() == doAn.TenGiangVien)
+                {
+                    cmbMaGv.SelectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        private void LoadSinhVienSelection(DoAnViewModel doAn)
+        {
+            if (string.IsNullOrEmpty(doAn.SinhVien) || doAn.SinhVien == "Chưa phân công")
+            {
+                cmbMaSv.SelectedIndex = 0;
+            }
+            else
+            {
+                for (int i = 0; i < cmbMaSv.Items.Count; i++)
+                {
+                    var item = cmbMaSv.Items[i];
+                    if (item.GetType().GetProperty("HoTen")?.GetValue(item)?.ToString() == doAn.SinhVien)
+                    {
+                        cmbMaSv.SelectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void LoadLoaiDoAnSelection(DoAnViewModel doAn)
+        {
+            if (cmbMaLoai != null)
+            {
+                suppressComboChange = true;
+                for (int i = 0; i < cmbMaLoai.Items.Count; i++)
+                {
+                    var item = cmbMaLoai.Items[i];
+                    if (item.GetType().GetProperty("TenLoaiDoAn")?.GetValue(item)?.ToString() == doAn.LoaiDoAn)
+                    {
+                        cmbMaLoai.SelectedIndex = i;
+                        break;
+                    }
+                }
+                suppressComboChange = false;
+            }
+        }
+
+        private void LoadDateValues(DoAnViewModel doAn)
+        {
+            if (doAn.NgayBatDau.HasValue)
+                dtpNgayBatDau.Value = doAn.NgayBatDau.Value.ToDateTime(TimeOnly.MinValue);
+            if (doAn.NgayKetThuc.HasValue)
+                dtpNgayKetThuc.Value = doAn.NgayKetThuc.Value.ToDateTime(TimeOnly.MinValue);
+        }
+
         private void btnThem_Click(object sender, EventArgs e)
         {
             if (!ValidateInput()) return;
             
-            if (cmbMaSv.SelectedIndex == -1)
-            {
-                MessageBox.Show("Vui lòng chọn sinh viên");
-                return;
-            }
-
-            var doAn = new DoAn
-            {
-                MaDeTai = txtMaDeTai.Text,
-                TenDeTai = txtTenDeTai.Text,
-                MoTa = txtMoTa?.Text ?? "",
-                MaGv = cmbMaGv.SelectedValue?.ToString() ?? "",
-                MaSv = cmbMaSv.SelectedValue?.ToString(),
-                MaTrangThai = GetDefaultMaTrangThai(),
-                NgayBatDau = DateOnly.FromDateTime(dtpNgayBatDau.Value),
-                NgayKetThuc = DateOnly.FromDateTime(dtpNgayKetThuc.Value),
-                Diem = string.IsNullOrEmpty(txtDiem.Text) ? null : decimal.Parse(txtDiem.Text),
-                MaLoaiDoAn = cmbMaLoai?.SelectedValue?.ToString()
-            };
+            var doAn = CreateDoAnFromForm();
 
             if (doAnController.TaoDoAn(doAn, out string error))
             {
-                MessageBox.Show("Thêm thành công", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                LoadData();
-                ClearForm();
+                ShowSuccessMessage("Thêm thành công");
+                RefreshDataAndClearForm();
             }
             else
             {
-                MessageBox.Show(error, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowErrorMessage(error);
             }
         }
 
         private void btnSua_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(txtMaDeTai.Text))
-            {
-                MessageBox.Show("Vui lòng chọn đồ án cần sửa", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+            if (!ValidateUpdatePermissions()) return;
+            if (!ValidateInputForUpdate()) return;
+            if (!ValidateGiangVienNotDuplicate()) return;
 
-            if (!AuthorizationHelper.IsAdmin())
-            {
-                MessageBox.Show("Chỉ Admin mới có thể sửa thông tin đề tài!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
+            var doAn = CreateDoAnFromForm();
 
-            // Open TaoDoAnForm in edit mode with the selected MaDeTai
-            var editForm = new TaoDoAnForm(txtMaDeTai.Text);
-            if (editForm.ShowDialog() == DialogResult.OK)
+            if (doAnController.CapNhatDoAn(doAn, out string error))
             {
-                MessageBox.Show("✅ Cập nhật đề tài thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                LoadData();
-                ClearForm();
+                ShowSuccessMessage("✅ Cập nhật đồ án thành công!");
+                RefreshDataAndClearForm();
+            }
+            else
+            {
+                ShowErrorMessage(error);
             }
          }
 
          private void btnXoa_Click(object sender, EventArgs e)
          {
-             if (string.IsNullOrEmpty(txtMaDeTai.Text))
-             {
-                 MessageBox.Show("Vui lòng chọn đồ án cần xóa");
-                 return;
-             }
+             if (!ValidateDeletePermissions()) return;
+             if (!ValidateDoAnForDeletion()) return;
+             if (!ConfirmDeletion()) return;
 
-             MessageBox.Show("Không thể xóa đề tài. Chỉ có thể tạo đề tài mới.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+             if (doAnController.XoaDoAn(txtMaDeTai.Text))
+             {
+                 ShowSuccessMessage("✅ Xóa đồ án thành công!");
+                 RefreshDataAndClearForm();
+             }
+             else
+             {
+                 ShowErrorMessage("Lỗi khi xóa đồ án!");
+             }
          }
 
          private string GetDefaultMaTrangThai()
@@ -371,37 +423,203 @@ namespace QuanLyDoAn.View
              }
          }
 
+        private DoAn CreateDoAnFromForm()
+        {
+            return new DoAn
+            {
+                MaDeTai = txtMaDeTai.Text,
+                TenDeTai = txtTenDeTai.Text,
+                MoTa = txtMoTa?.Text ?? "",
+                MaGv = cmbMaGv.SelectedValue?.ToString() ?? "",
+                MaSv = cmbMaSv.SelectedValue?.ToString() == "" ? null : cmbMaSv.SelectedValue?.ToString(),
+                MaTrangThai = GetDefaultMaTrangThai(),
+                NgayBatDau = DateOnly.FromDateTime(dtpNgayBatDau.Value),
+                NgayKetThuc = DateOnly.FromDateTime(dtpNgayKetThuc.Value),
+                Diem = string.IsNullOrEmpty(txtDiem.Text) ? null : decimal.Parse(txtDiem.Text),
+                MaLoaiDoAn = cmbMaLoai?.SelectedValue?.ToString()
+            };
+        }
+
+        private bool ValidateUpdatePermissions()
+        {
+            if (string.IsNullOrEmpty(txtMaDeTai.Text))
+            {
+                ShowWarningMessage("Vui lòng chọn đồ án cần sửa");
+                return false;
+            }
+
+            if (!AuthorizationHelper.IsAdmin())
+            {
+                ShowInfoMessage("Chỉ Admin mới có thể sửa thông tin đề tài!");
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool ValidateDeletePermissions()
+        {
+            if (string.IsNullOrEmpty(txtMaDeTai.Text))
+            {
+                ShowWarningMessage("Vui lòng chọn đồ án cần xóa");
+                return false;
+            }
+
+            if (!AuthorizationHelper.IsAdmin())
+            {
+                ShowInfoMessage("Chỉ Admin mới có thể xóa đồ án!");
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool ValidateDoAnForDeletion()
+        {
+            using var context = new QuanLyDoAnContext();
+            var doAn = context.DoAns.Find(txtMaDeTai.Text);
+            
+            if (doAn == null)
+            {
+                ShowErrorMessage("Đồ án không tồn tại!");
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(doAn.MaSv))
+            {
+                ShowWarningMessage("Không thể xóa đồ án đã được phân công cho sinh viên!");
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool ConfirmDeletion()
+        {
+            var result = MessageBox.Show(
+                $"Bạn có chắc chắn muốn xóa đồ án '{txtMaDeTai.Text}'?\n\nTên: {txtTenDeTai.Text}",
+                "Xác nhận xóa",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            return result == DialogResult.Yes;
+        }
+
+        private void RefreshDataAndClearForm()
+        {
+            LoadData();
+            ClearForm();
+        }
+
+        private void ShowSuccessMessage(string message)
+        {
+            MessageBox.Show(message, "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void ShowErrorMessage(string message)
+        {
+            MessageBox.Show(message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        private void ShowWarningMessage(string message)
+        {
+            MessageBox.Show(message, "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        private void ShowInfoMessage(string message)
+        {
+            MessageBox.Show(message, "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        
+        private bool ValidateGiangVienNotDuplicate()
+        {
+            var maGvhd = cmbMaGv.SelectedValue?.ToString();
+            var maDeTai = txtMaDeTai.Text;
+            
+            if (string.IsNullOrEmpty(maGvhd) || string.IsNullOrEmpty(maDeTai)) return true;
+            
+            using var context = new QuanLyDoAnContext();
+            var daPhanCong = context.DanhGia.Any(d => 
+                d.MaDeTai == maDeTai && 
+                d.MaGv == maGvhd);
+            
+            if (daPhanCong)
+            {
+                ShowWarningMessage("Giảng viên này đã được phân công vai trò khác (PB/HĐ) cho đồ án này. Vui lòng chọn giảng viên khác!");
+                return false;
+            }
+            
+            return true;
+        }
+
         private void ApplyTheme()
+        {
+            System.Diagnostics.Debug.WriteLine("Đang áp dụng theme...");
+            
+            ApplyControlTheme();
+            ApplyDataGridViewTheme();
+            
+            System.Diagnostics.Debug.WriteLine("✓ Áp dụng theme thành công");
+        }
+
+        private void ApplyControlTheme()
         {
             this.BackColor = Constants.Colors.Background;
             
             foreach (Control control in this.Controls)
             {
-                if (control is Button btn)
-                {
-                    btn.BackColor = Constants.Colors.Primary;
-                    btn.ForeColor = System.Drawing.Color.White;
-                    btn.FlatStyle = FlatStyle.Flat;
-                    btn.FlatAppearance.BorderSize = 0;
-                    btn.Cursor = Cursors.Hand;
-                }
-                else if (control is TextBox txt)
-                {
-                    txt.BackColor = System.Drawing.Color.White;
-                    txt.ForeColor = Constants.Colors.TextPrimary;
-                    txt.BorderStyle = BorderStyle.FixedSingle;
-                }
-                else if (control is ComboBox cmb)
-                {
-                    cmb.BackColor = System.Drawing.Color.White;
-                    cmb.ForeColor = Constants.Colors.TextPrimary;
-                }
-                else if (control is Label lbl)
-                {
-                    lbl.ForeColor = Constants.Colors.TextDark;
-                }
+                ApplyControlSpecificTheme(control);
             }
-            
+        }
+
+        private void ApplyControlSpecificTheme(Control control)
+        {
+            switch (control)
+            {
+                case Button btn:
+                    ApplyButtonTheme(btn);
+                    break;
+                case TextBox txt:
+                    ApplyTextBoxTheme(txt);
+                    break;
+                case ComboBox cmb:
+                    ApplyComboBoxTheme(cmb);
+                    break;
+                case Label lbl:
+                    ApplyLabelTheme(lbl);
+                    break;
+            }
+        }
+
+        private void ApplyButtonTheme(Button btn)
+        {
+            btn.BackColor = Constants.Colors.Primary;
+            btn.ForeColor = System.Drawing.Color.White;
+            btn.FlatStyle = FlatStyle.Flat;
+            btn.FlatAppearance.BorderSize = 0;
+            btn.Cursor = Cursors.Hand;
+        }
+
+        private void ApplyTextBoxTheme(TextBox txt)
+        {
+            txt.BackColor = System.Drawing.Color.White;
+            txt.ForeColor = Constants.Colors.TextPrimary;
+            txt.BorderStyle = BorderStyle.FixedSingle;
+        }
+
+        private void ApplyComboBoxTheme(ComboBox cmb)
+        {
+            cmb.BackColor = System.Drawing.Color.White;
+            cmb.ForeColor = Constants.Colors.TextPrimary;
+        }
+
+        private void ApplyLabelTheme(Label lbl)
+        {
+            lbl.ForeColor = Constants.Colors.TextDark;
+        }
+
+        private void ApplyDataGridViewTheme()
+        {
             dgvDoAn.BackgroundColor = Constants.Colors.Background;
             dgvDoAn.GridColor = Constants.Colors.Border;
             dgvDoAn.DefaultCellStyle.BackColor = System.Drawing.Color.White;
@@ -421,6 +639,38 @@ namespace QuanLyDoAn.View
                 return false;
             }
 
+            if (Validation.IsNullOrEmpty(txtTenDeTai.Text) || !Validation.IsValidLength(txtTenDeTai.Text, 5, 200))
+            {
+                MessageBox.Show("Tên đề tài phải từ 5-200 ký tự");
+                return false;
+            }
+
+            if (cmbMaGv.SelectedIndex == -1)
+            {
+                MessageBox.Show("Vui lòng chọn giảng viên hướng dẫn");
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(txtDiem.Text))
+            {
+                if (!decimal.TryParse(txtDiem.Text, out decimal diem) || diem < 0 || diem > 10)
+                {
+                    MessageBox.Show("Điểm phải là số từ 0 đến 10");
+                    return false;
+                }
+            }
+
+            if (!Validation.IsValidDateRange(dtpNgayBatDau.Value, dtpNgayKetThuc.Value))
+            {
+                MessageBox.Show("Ngày bắt đầu phải trước ngày kết thúc");
+                return false;
+            }
+
+            return true;
+        }
+        
+        private bool ValidateInputForUpdate()
+        {
             if (Validation.IsNullOrEmpty(txtTenDeTai.Text) || !Validation.IsValidLength(txtTenDeTai.Text, 5, 200))
             {
                 MessageBox.Show("Tên đề tài phải từ 5-200 ký tự");
@@ -471,20 +721,26 @@ namespace QuanLyDoAn.View
                 using var context = new QuanLyDoAnContext();
 
                 var sinhViens = context.SinhViens.Select(sv => new { sv.MaSv, sv.HoTen }).ToList();
+                // Thêm tùy chọn "Chưa phân công"
+                sinhViens.Insert(0, new { MaSv = "", HoTen = "Chưa phân công" });
+                
                 cmbMaSv.DataSource = sinhViens;
                 cmbMaSv.DisplayMember = "HoTen";
                 cmbMaSv.ValueMember = "MaSv";
-                cmbMaSv.DropDownStyle = ComboBoxStyle.DropDown;
-                cmbMaSv.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
-                cmbMaSv.AutoCompleteSource = AutoCompleteSource.CustomSource;
-                cmbMaSv.AutoCompleteCustomSource = new AutoCompleteStringCollection();
-                cmbMaSv.AutoCompleteCustomSource.AddRange(sinhViens.Select(s => s.HoTen).ToArray());
+                cmbMaSv.DropDownStyle = ComboBoxStyle.DropDownList;
+                cmbMaSv.SelectedIndex = 0; // Mặc định chọn "Chưa phân công"
 
                 var giangViens = context.GiangViens.Select(gv => new { gv.MaGv, gv.HoTen }).ToList();
                 cmbMaGv.DataSource = giangViens;
                 cmbMaGv.DisplayMember = "HoTen";
                 cmbMaGv.ValueMember = "MaGv";
                 cmbMaGv.DropDownStyle = ComboBoxStyle.DropDownList;
+                
+                var loaiDoAns = context.LoaiDoAns.Select(l => new { l.MaLoaiDoAn, l.TenLoaiDoAn }).ToList();
+                cmbMaLoai.DataSource = loaiDoAns;
+                cmbMaLoai.DisplayMember = "TenLoaiDoAn";
+                cmbMaLoai.ValueMember = "MaLoaiDoAn";
+                cmbMaLoai.DropDownStyle = ComboBoxStyle.DropDownList;
             }
             catch (Exception ex)
             {
@@ -496,25 +752,61 @@ namespace QuanLyDoAn.View
         {
             try
             {
-                var keyword = txtTimKiem.Text.ToLower();
-                var danhSach = doAnController.LayDanhSachDoAn();
-
-                if (!string.IsNullOrEmpty(keyword))
-                {
-                    danhSach = danhSach.Where(d =>
-                        d.MaDeTai.ToLower().Contains(keyword) ||
-                        d.TenDeTai.ToLower().Contains(keyword) ||
-                        d.DanhSachSinhVien.ToLower().Contains(keyword) ||
-                        d.TenGiangVien.ToLower().Contains(keyword)
-                    ).ToList();
-                }
-
-                dgvDoAn.DataSource = danhSach;
+                System.Diagnostics.Debug.WriteLine("Bắt đầu txtTimKiem_TextChanged");
+                
+                var keyword = GetSearchKeyword();
+                var filteredData = FilterDoAnData(keyword);
+                UpdateDataGridView(filteredData);
+                
+                System.Diagnostics.Debug.WriteLine("Hoàn thành txtTimKiem_TextChanged");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi tìm kiếm: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                HandleSearchError(ex);
             }
+        }
+
+        private string GetSearchKeyword()
+        {
+            var keyword = txtTimKiem.Text?.ToLower() ?? "";
+            System.Diagnostics.Debug.WriteLine($"Keyword: {keyword}");
+            return keyword;
+        }
+
+        private List<DoAnViewModel> FilterDoAnData(string keyword)
+        {
+            var danhSach = doAnController.LayDanhSachDoAn();
+            System.Diagnostics.Debug.WriteLine($"Số lượng ban đầu: {danhSach?.Count ?? 0}");
+
+            if (!string.IsNullOrEmpty(keyword) && danhSach != null)
+            {
+                danhSach = danhSach.Where(d =>
+                    (d.MaDeTai?.ToLower().Contains(keyword) ?? false) ||
+                    (d.TenDeTai?.ToLower().Contains(keyword) ?? false) ||
+                    (d.SinhVien?.ToLower().Contains(keyword) ?? false) ||
+                    (d.TenGiangVien?.ToLower().Contains(keyword) ?? false) ||
+                    (d.LoaiDoAn?.ToLower().Contains(keyword) ?? false)
+                ).ToList();
+                System.Diagnostics.Debug.WriteLine($"Số lượng sau filter: {danhSach.Count}");
+            }
+
+            return danhSach;
+        }
+
+        private void UpdateDataGridView(List<DoAnViewModel> data)
+        {
+            System.Diagnostics.Debug.WriteLine("Gán DataSource");
+            dgvDoAn.DataSource = data;
+            
+            System.Diagnostics.Debug.WriteLine("Gọi ConfigureColumns");
+            ConfigureColumns();
+        }
+
+        private void HandleSearchError(Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Lỗi trong txtTimKiem_TextChanged: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
+            MessageBox.Show($"Lỗi khi tìm kiếm: {ex.Message}\n\nStackTrace: {ex.StackTrace}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }

@@ -22,6 +22,13 @@ namespace QuanLyDoAn.View
             editingMaDeTai = maDeTai;
             doAnController = new DoAnController();
             ThemeHelper.ApplyTheme(this);
+            
+            // Set DateTimePicker format
+            dtpNgayBatDau.Format = DateTimePickerFormat.Custom;
+            dtpNgayBatDau.CustomFormat = "dd/MM/yyyy";
+            dtpNgayKetThuc.Format = DateTimePickerFormat.Custom;
+            dtpNgayKetThuc.CustomFormat = "dd/MM/yyyy";
+            
             LoadComboBoxData();
             ConfigureTrangThaiControl();
 

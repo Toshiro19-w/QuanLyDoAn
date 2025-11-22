@@ -37,11 +37,10 @@ namespace QuanLyDoAn.View
             lblNhanXet = new Label();
             txtNhanXet = new TextBox();
             btnCapNhatNhanXet = new Button();
-            lblDiem = new Label();
-            txtDiem = new TextBox();
-            lblNhanXetCuoi = new Label();
-            txtNhanXetCuoi = new TextBox();
             btnChamDiem = new Button();
+            btnChamDiemTienDo = new Button();
+            lblDiemTienDo = new Label();
+            txtDiemTienDo = new TextBox();
             ((System.ComponentModel.ISupportInitialize)dgvDoAn).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgvTienDo).BeginInit();
             SuspendLayout();
@@ -151,52 +150,47 @@ namespace QuanLyDoAn.View
             btnCapNhatNhanXet.UseVisualStyleBackColor = false;
             btnCapNhatNhanXet.Click += BtnCapNhatNhanXet_Click;
             // 
-            // lblDiem
-            // 
-            lblDiem.AutoSize = true;
-            lblDiem.Location = new Point(94, 530);
-            lblDiem.Name = "lblDiem";
-            lblDiem.Size = new Size(48, 20);
-            lblDiem.TabIndex = 7;
-            lblDiem.Text = "Điểm:";
-            // 
-            // txtDiem
-            // 
-            txtDiem.Location = new Point(150, 530);
-            txtDiem.Name = "txtDiem";
-            txtDiem.Size = new Size(80, 27);
-            txtDiem.TabIndex = 8;
-            // 
-            // lblNhanXetCuoi
-            // 
-            lblNhanXetCuoi.AutoSize = true;
-            lblNhanXetCuoi.Location = new Point(565, 537);
-            lblNhanXetCuoi.Name = "lblNhanXetCuoi";
-            lblNhanXetCuoi.Size = new Size(103, 20);
-            lblNhanXetCuoi.TabIndex = 9;
-            lblNhanXetCuoi.Text = "Nhận xét cuối:";
-            // 
-            // txtNhanXetCuoi
-            // 
-            txtNhanXetCuoi.Location = new Point(674, 530);
-            txtNhanXetCuoi.Multiline = true;
-            txtNhanXetCuoi.Name = "txtNhanXetCuoi";
-            txtNhanXetCuoi.ScrollBars = ScrollBars.Vertical;
-            txtNhanXetCuoi.Size = new Size(260, 60);
-            txtNhanXetCuoi.TabIndex = 10;
-            // 
             // btnChamDiem
             // 
             btnChamDiem.BackColor = Color.FromArgb(46, 204, 113);
             btnChamDiem.FlatStyle = FlatStyle.Flat;
             btnChamDiem.ForeColor = Color.White;
-            btnChamDiem.Location = new Point(1531, 503);
+            btnChamDiem.Location = new Point(1531, 446);
             btnChamDiem.Name = "btnChamDiem";
             btnChamDiem.Size = new Size(130, 35);
-            btnChamDiem.TabIndex = 11;
-            btnChamDiem.Text = "Chấm điểm";
+            btnChamDiem.TabIndex = 7;
+            btnChamDiem.Text = "Chấm theo tiêu chí";
             btnChamDiem.UseVisualStyleBackColor = false;
             btnChamDiem.Click += BtnChamDiem_Click;
+            // 
+            // lblDiemTienDo
+            // 
+            lblDiemTienDo.AutoSize = true;
+            lblDiemTienDo.Location = new Point(940, 453);
+            lblDiemTienDo.Name = "lblDiemTienDo";
+            lblDiemTienDo.Size = new Size(95, 20);
+            lblDiemTienDo.TabIndex = 8;
+            lblDiemTienDo.Text = "Điểm tiến độ:";
+            // 
+            // txtDiemTienDo
+            // 
+            txtDiemTienDo.Location = new Point(1045, 450);
+            txtDiemTienDo.Name = "txtDiemTienDo";
+            txtDiemTienDo.Size = new Size(80, 27);
+            txtDiemTienDo.TabIndex = 9;
+            // 
+            // btnChamDiemTienDo
+            // 
+            btnChamDiemTienDo.BackColor = Color.FromArgb(52, 152, 219);
+            btnChamDiemTienDo.FlatStyle = FlatStyle.Flat;
+            btnChamDiemTienDo.ForeColor = Color.White;
+            btnChamDiemTienDo.Location = new Point(1135, 446);
+            btnChamDiemTienDo.Name = "btnChamDiemTienDo";
+            btnChamDiemTienDo.Size = new Size(130, 35);
+            btnChamDiemTienDo.TabIndex = 10;
+            btnChamDiemTienDo.Text = "Lưu điểm tiến độ";
+            btnChamDiemTienDo.UseVisualStyleBackColor = false;
+            btnChamDiemTienDo.Click += BtnChamDiemTienDo_Click;
             // 
             // DoAnGiangVienControl
             // 
@@ -206,10 +200,9 @@ namespace QuanLyDoAn.View
             Controls.Add(btnXoaDeTai);
             Controls.Add(btnSuaDeTai);
             Controls.Add(btnChamDiem);
-            Controls.Add(txtNhanXetCuoi);
-            Controls.Add(lblNhanXetCuoi);
-            Controls.Add(txtDiem);
-            Controls.Add(lblDiem);
+            Controls.Add(btnChamDiemTienDo);
+            Controls.Add(txtDiemTienDo);
+            Controls.Add(lblDiemTienDo);
             Controls.Add(btnCapNhatNhanXet);
             Controls.Add(txtNhanXet);
             Controls.Add(lblNhanXet);
@@ -234,11 +227,10 @@ namespace QuanLyDoAn.View
         private Label lblNhanXet;
         private TextBox txtNhanXet;
         private Button btnCapNhatNhanXet;
-        private Label lblDiem;
-        private TextBox txtDiem;
-        private Label lblNhanXetCuoi;
-        private TextBox txtNhanXetCuoi;
         private Button btnChamDiem;
+        private Button btnChamDiemTienDo;
+        private Label lblDiemTienDo;
+        private TextBox txtDiemTienDo;
         private Button btnSuaDeTai;
         private Button btnXoaDeTai;
     }

@@ -35,7 +35,13 @@ namespace QuanLyDoAn.View
         private void InitializeComponent()
         {
             Dock = DockStyle.Fill;
-            var tabControl = new TabControl { Dock = DockStyle.Fill };
+            var tabControl = new TabControl 
+            { 
+                Dock = DockStyle.Fill,
+                Appearance = TabAppearance.FlatButtons,
+                SizeMode = TabSizeMode.Fixed,
+                ItemSize = new Size(120, 30)
+            };
 
             tabControl.TabPages.Add(CreateLoaiDoAnTab());
             tabControl.TabPages.Add(CreateKyHocTab());
@@ -58,9 +64,12 @@ namespace QuanLyDoAn.View
             var buttons = CreateButtonPanel();
             buttons.Controls.Add(CreateButton("Thêm", (s, e) =>
             {
+                if (!ValidateRequired(txtMaLoai.Text, txtTenLoai.Text)) return;
+                if (!ValidateMaFormat(txtMaLoai.Text, "Mã loại")) return;
+                
                 var entity = new LoaiDoAn
                 {
-                    MaLoaiDoAn = txtMaLoai.Text.Trim(),
+                    MaLoaiDoAn = txtMaLoai.Text.Trim().ToUpper(),
                     TenLoaiDoAn = txtTenLoai.Text.Trim()
                 };
                 if (controller.ThemLoaiDoAn(entity, out string err))
@@ -95,17 +104,21 @@ namespace QuanLyDoAn.View
             {
                 var ma = txtMaLoai.Text.Trim();
                 if (string.IsNullOrEmpty(ma)) return;
-                if (controller.XoaLoaiDoAn(ma, out string err))
+                if (MessageBox.Show($"Bạn có chắc chắn muốn xóa loại đồ án '{ma}'?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-                    LoadLoaiDoAn();
-                    ClearLoaiDoAnForm();
-                    MessageBox.Show("Đã xóa loại đồ án.", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else
-                {
-                    MessageBox.Show(err, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    if (controller.XoaLoaiDoAn(ma, out string err))
+                    {
+                        LoadLoaiDoAn();
+                        ClearLoaiDoAnForm();
+                        MessageBox.Show("Đã xóa loại đồ án.", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show(err, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
                 }
             }));
+            buttons.Controls.Add(CreateButton("Làm mới", (s, e) => ClearLoaiDoAnForm()));
 
             dgvLoaiDoAn = CreateGrid();
             dgvLoaiDoAn.SelectionChanged += (s, e) =>
@@ -144,17 +157,21 @@ namespace QuanLyDoAn.View
             {
                 var ma = txtMaKy.Text.Trim();
                 if (string.IsNullOrEmpty(ma)) return;
-                if (controller.XoaKyHoc(ma, out string err))
+                if (MessageBox.Show($"Bạn có chắc chắn muốn xóa kỳ học '{ma}'?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-                    LoadKyHoc();
-                    ClearKyHocForm();
-                    MessageBox.Show("Đã xóa kỳ học.", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else
-                {
-                    MessageBox.Show(err, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    if (controller.XoaKyHoc(ma, out string err))
+                    {
+                        LoadKyHoc();
+                        ClearKyHocForm();
+                        MessageBox.Show("Đã xóa kỳ học.", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show(err, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
                 }
             }));
+            buttons.Controls.Add(CreateButton("Làm mới", (s, e) => ClearKyHocForm()));
 
             dgvKyHoc = CreateGrid();
             dgvKyHoc.SelectionChanged += (s, e) =>
@@ -193,17 +210,21 @@ namespace QuanLyDoAn.View
             {
                 var ma = txtMaChuyenNganh.Text.Trim();
                 if (string.IsNullOrEmpty(ma)) return;
-                if (controller.XoaChuyenNganh(ma, out string err))
+                if (MessageBox.Show($"Bạn có chắc chắn muốn xóa chuyên ngành '{ma}'?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-                    LoadChuyenNganh();
-                    ClearChuyenNganhForm();
-                    MessageBox.Show("Đã xóa chuyên ngành.", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else
-                {
-                    MessageBox.Show(err, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    if (controller.XoaChuyenNganh(ma, out string err))
+                    {
+                        LoadChuyenNganh();
+                        ClearChuyenNganhForm();
+                        MessageBox.Show("Đã xóa chuyên ngành.", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show(err, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
                 }
             }));
+            buttons.Controls.Add(CreateButton("Làm mới", (s, e) => ClearChuyenNganhForm()));
 
             dgvChuyenNganh = CreateGrid();
             dgvChuyenNganh.SelectionChanged += (s, e) =>
@@ -306,6 +327,11 @@ namespace QuanLyDoAn.View
         private void LoadLoaiDoAn()
         {
             dgvLoaiDoAn.DataSource = controller.LayLoaiDoAn();
+            
+            // Ẩn các cột navigation
+            if (dgvLoaiDoAn.Columns["DoAns"] != null)
+                dgvLoaiDoAn.Columns["DoAns"].Visible = false;
+                
             if (dgvLoaiDoAn.Columns["MaLoaiDoAn"] != null)
                 dgvLoaiDoAn.Columns["MaLoaiDoAn"].HeaderText = "Mã loại";
             if (dgvLoaiDoAn.Columns["TenLoaiDoAn"] != null)
@@ -315,15 +341,31 @@ namespace QuanLyDoAn.View
         private void LoadKyHoc()
         {
             dgvKyHoc.DataSource = controller.LayKyHoc();
+            
+            // Ẩn các cột navigation
+            if (dgvKyHoc.Columns["DoAns"] != null)
+                dgvKyHoc.Columns["DoAns"].Visible = false;
+                
             if (dgvKyHoc.Columns["MaKy"] != null)
                 dgvKyHoc.Columns["MaKy"].HeaderText = "Mã kỳ";
             if (dgvKyHoc.Columns["TenKy"] != null)
                 dgvKyHoc.Columns["TenKy"].HeaderText = "Tên kỳ";
+            if (dgvKyHoc.Columns["NamHoc"] != null)
+                dgvKyHoc.Columns["NamHoc"].HeaderText = "Năm học";
         }
 
         private void LoadChuyenNganh()
         {
             dgvChuyenNganh.DataSource = controller.LayChuyenNganh();
+            
+            // Ẩn các cột navigation
+            if (dgvChuyenNganh.Columns["GiangViens"] != null)
+                dgvChuyenNganh.Columns["GiangViens"].Visible = false;
+            if (dgvChuyenNganh.Columns["SinhViens"] != null)
+                dgvChuyenNganh.Columns["SinhViens"].Visible = false;
+            if (dgvChuyenNganh.Columns["DoAns"] != null)
+                dgvChuyenNganh.Columns["DoAns"].Visible = false;
+                
             if (dgvChuyenNganh.Columns["MaChuyenNganh"] != null)
                 dgvChuyenNganh.Columns["MaChuyenNganh"].HeaderText = "Mã chuyên ngành";
             if (dgvChuyenNganh.Columns["TenChuyenNganh"] != null)
@@ -341,7 +383,9 @@ namespace QuanLyDoAn.View
         private void SaveKyHoc(bool isNew)
         {
             if (!ValidateRequired(txtMaKy.Text, txtTenKy.Text)) return;
-            var entity = new KyHoc { MaKy = txtMaKy.Text.Trim(), TenKy = txtTenKy.Text.Trim() };
+            if (isNew && !ValidateMaFormat(txtMaKy.Text, "Mã kỳ")) return;
+            
+            var entity = new KyHoc { MaKy = txtMaKy.Text.Trim().ToUpper(), TenKy = txtTenKy.Text.Trim() };
             if (controller.LuuKyHoc(entity, isNew, out string err))
             {
                 LoadKyHoc();
@@ -365,9 +409,11 @@ namespace QuanLyDoAn.View
         private void SaveChuyenNganh(bool isNew)
         {
             if (!ValidateRequired(txtMaChuyenNganh.Text, txtTenChuyenNganh.Text)) return;
+            if (isNew && !ValidateMaFormat(txtMaChuyenNganh.Text, "Mã chuyên ngành")) return;
+            
             var entity = new ChuyenNganh
             {
-                MaChuyenNganh = txtMaChuyenNganh.Text.Trim(),
+                MaChuyenNganh = txtMaChuyenNganh.Text.Trim().ToUpper(),
                 TenChuyenNganh = txtTenChuyenNganh.Text.Trim()
             };
 
@@ -398,9 +444,29 @@ namespace QuanLyDoAn.View
             {
                 if (string.IsNullOrWhiteSpace(value))
                 {
-                    MessageBox.Show("Vui lòng nhập đầy đủ thông tin.");
+                    MessageBox.Show("Vui lòng nhập đầy đủ thông tin.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return false;
                 }
+            }
+            return true;
+        }
+        
+        private bool ValidateMaFormat(string ma, string fieldName)
+        {
+            if (string.IsNullOrWhiteSpace(ma))
+            {
+                MessageBox.Show($"{fieldName} không được để trống.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+            if (ma.Length < 2 || ma.Length > 10)
+            {
+                MessageBox.Show($"{fieldName} phải có độ dài từ 2-10 ký tự.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+            if (!System.Text.RegularExpressions.Regex.IsMatch(ma, @"^[A-Z0-9]+$"))
+            {
+                MessageBox.Show($"{fieldName} chỉ được chứa chữ cái hoa và số.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
             }
             return true;
         }

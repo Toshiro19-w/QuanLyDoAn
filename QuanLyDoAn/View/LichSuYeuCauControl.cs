@@ -29,7 +29,6 @@ namespace QuanLyDoAn.View
                 
                 if (yeuCaus.Count == 0)
                 {
-                    MessageBox.Show("Bạn chưa gửi yêu cầu nào!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     lblThongTin.Text = "Chưa có yêu cầu nào";
                     dgvLichSu.DataSource = null;
                     return;
@@ -41,8 +40,8 @@ namespace QuanLyDoAn.View
                     y.MaDeTai,
                     TenDeTai = y.MaDeTaiNavigation?.TenDeTai ?? "",
                     GiangVien = y.MaDeTaiNavigation?.MaGvNavigation?.HoTen ?? "N/A",
-                    TrangThaiCode = y.TrangThai, // L?u code g?c
-                    TrangThaiDisplay = GetTrangThaiDisplay(y.TrangThai), // Hi?n th? v?i emoji
+                    TrangThaiCode = y.TrangThai, // Lưu code gốc
+                    TrangThaiDisplay = GetTrangThaiDisplay(y.TrangThai), // Hiển thị với emoji
                     y.NgayGui,
                     y.GhiChu
                 }).ToList();
@@ -122,7 +121,7 @@ namespace QuanLyDoAn.View
         {
             if (dgvLichSu.CurrentRow == null)
             {
-                MessageBox.Show("Vui l�ng ch?n y�u c?u!", "Th�ng b�o", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Vui lòng chọn yêu cầu!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 

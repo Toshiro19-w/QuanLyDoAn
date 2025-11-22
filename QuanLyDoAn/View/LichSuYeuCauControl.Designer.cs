@@ -35,7 +35,7 @@ namespace QuanLyDoAn.View
             this.lblTitle.Name = "lblTitle";
             this.lblTitle.Size = new System.Drawing.Size(300, 30);
             this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "L?CH S? Y�U C?U C?A T�I";
+            this.lblTitle.Text = "LỊCH SỬ YÊU CẦU CỦA TÔI";
             
             // lblThongTin
             this.lblThongTin.AutoSize = true;
@@ -44,7 +44,7 @@ namespace QuanLyDoAn.View
             this.lblThongTin.Name = "lblThongTin";
             this.lblThongTin.Size = new System.Drawing.Size(200, 15);
             this.lblThongTin.TabIndex = 1;
-            this.lblThongTin.Text = "Th?ng k� c�c y�u c?u ?� g?i";
+            this.lblThongTin.Text = "Thống kê các yêu cầu đã gửi";
             
             // dgvLichSu
             this.dgvLichSu.AllowUserToAddRows = false;
@@ -64,7 +64,7 @@ namespace QuanLyDoAn.View
             this.btnLamMoi.Name = "btnLamMoi";
             this.btnLamMoi.Size = new System.Drawing.Size(120, 35);
             this.btnLamMoi.TabIndex = 3;
-            this.btnLamMoi.Text = "L�m m?i";
+            this.btnLamMoi.Text = "Làm mới";
             this.btnLamMoi.UseVisualStyleBackColor = true;
             this.btnLamMoi.Click += new System.EventHandler(this.BtnLamMoi_Click);
             
@@ -73,7 +73,7 @@ namespace QuanLyDoAn.View
             this.btnXoa.Name = "btnXoa";
             this.btnXoa.Size = new System.Drawing.Size(120, 35);
             this.btnXoa.TabIndex = 4;
-            this.btnXoa.Text = "H?y y�u c?u";
+            this.btnXoa.Text = "Hủy yêu cầu";
             this.btnXoa.UseVisualStyleBackColor = true;
             this.btnXoa.Click += new System.EventHandler(this.BtnXoa_Click);
             
